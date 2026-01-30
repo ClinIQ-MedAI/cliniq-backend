@@ -31,7 +31,7 @@ public class PatientRegistrationService(
             return Result.Failure(UserErrors.UserNotFound);
 
         // Check if user is verified
-        if (!user.EmailVerified && !user.PhoneVerified)
+        if (!user.EmailConfirmed && !user.PhoneNumberConfirmed)
             return Result.Failure(new Error("User.NotVerified", "Please verify email or phone before submitting survey", StatusCodes.Status403Forbidden));
 
         // Check if patient profile already exists

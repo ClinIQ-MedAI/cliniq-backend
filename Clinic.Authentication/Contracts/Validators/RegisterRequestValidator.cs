@@ -26,7 +26,10 @@ public class RegisterRequestValidator : AbstractValidator<RegisterRequest>
 
         RuleFor(r => r.DateOfBirth)
             .NotEmpty()
-            .LessThan(DateTime.Today.AddYears(-13))
+            .LessThan(DateOnly.FromDateTime(DateTime.Today.AddYears(-13)))
             .WithMessage("User must be at least 13 years old");
+
+        RuleFor(r => r.Gender)
+            .IsInEnum();
     }
 }

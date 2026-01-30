@@ -42,7 +42,7 @@ public static class DependencyInjection
 
         // Application Services
         services.AddScoped<ICacheService, CacheService>();
-        services.AddScoped<IVerificationService, VerificationService>();
+
 
         return services;
     }

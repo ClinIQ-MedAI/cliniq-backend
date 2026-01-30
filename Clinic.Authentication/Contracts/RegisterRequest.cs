@@ -1,3 +1,5 @@
+using Clinic.Infrastructure.Abstractions.Enums;
+
 namespace Clinic.Authentication.Contracts;
 
 /// <summary>
@@ -9,6 +11,6 @@ public record RegisterRequest(
     string FirstName,
     string LastName,
     string Password,
-    DateTime DateOfBirth,
-    string Gender  // "Male", "Female", "Other"
+    DateOnly DateOfBirth,
+    Gender Gender
 );

@@ -30,7 +30,7 @@ public class AuthService(
             return AuthResult.Failure("Invalid email or password");
 
         // Check if user is verified
-        if (!user.EmailVerified && !user.PhoneVerified)
+        if (!user.EmailConfirmed && !user.PhoneNumberConfirmed)
             return AuthResult.Failure("Please verify your email or phone before logging in");
 
         // Select appropriate login strategy

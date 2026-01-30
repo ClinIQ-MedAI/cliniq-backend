@@ -1,8 +1,11 @@
+using System.Text.Json.Serialization;
+
 namespace Clinic.Infrastructure.Entities;
 
 /// <summary>
 /// Status enum for doctor profiles.
 /// </summary>
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum DoctorStatus
 {
     /// <summary>No DoctorProfile exists for this user</summary>

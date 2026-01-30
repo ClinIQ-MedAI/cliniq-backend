@@ -7,3 +7,6 @@ global using Clinic.Authentication.Authorization;
 global using Clinic.Infrastructure.Abstractions;
 global using Clinic.Infrastructure.Errors;
 global using Clinic.Infrastructure.Extensions;
+global using Clinic.Infrastructure.Contracts.Common;
+
+global using Clinic.Authentication.Contracts.Users;

@@ -97,6 +97,7 @@ public static class DependencyInjection
 
         // Register services
         services.AddScoped<IRegistrationService, RegistrationService>();
+        services.AddScoped<IVerificationService, VerificationService>();
 
         services.AddScoped<IPasswordService, PasswordService>();
         services.AddScoped<IAuthService, AuthService>();

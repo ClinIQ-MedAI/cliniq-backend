@@ -1,6 +1,6 @@
 using Clinic.Infrastructure.Entities;
 using Clinic.Infrastructure.Persistence;
-using Clinic.Infrastructure.Contracts.Users;
+using Clinic.Authentication.Contracts.Users;
 using Microsoft.AspNetCore.Identity;
 
 namespace DoctorAPI.Services;

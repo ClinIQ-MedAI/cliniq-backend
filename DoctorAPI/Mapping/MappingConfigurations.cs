@@ -1,4 +1,4 @@
-using Clinic.Infrastructure.Contracts.Users;
+using Clinic.Authentication.Contracts.Users;
 using Clinic.Authentication.Contracts;
 using Clinic.Infrastructure.Entities;
 

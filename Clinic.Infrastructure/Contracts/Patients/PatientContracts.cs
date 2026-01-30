@@ -1,3 +1,4 @@
+using Clinic.Infrastructure.Abstractions.Enums;
 namespace Clinic.Infrastructure.Contracts.Patients;
 
 public record CreatePatientRequest(
@@ -28,6 +29,6 @@ public record PatientProfileResponse(
     string FirstName,
     string LastName,
     string Email,
-    DateOnly DateOfBirth, // Assuming Profile has extra fields
-    string Gender
+    DateOnly? DateOfBirth, // Assuming Profile has extra fields
+    Gender? Gender
 );

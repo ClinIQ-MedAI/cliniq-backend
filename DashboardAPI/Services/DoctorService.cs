@@ -2,7 +2,7 @@ using Clinic.Infrastructure.Contracts.Doctors;
 using Clinic.Infrastructure.Entities;
 using Clinic.Infrastructure.Persistence;
 using Clinic.Infrastructure.Abstractions.Consts;
-using Clinic.Infrastructure.Contracts.Users;
+using Clinic.Authentication.Contracts.Users;
 
 namespace DashboardAPI.Services;
 

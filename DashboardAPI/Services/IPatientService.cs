@@ -1,6 +1,6 @@
 using Clinic.Infrastructure.Abstractions;
 using Clinic.Infrastructure.Contracts.Patients;
-using Clinic.Infrastructure.Contracts.Users;
+using Clinic.Authentication.Contracts.Users;
 
 namespace DashboardAPI.Services;
 

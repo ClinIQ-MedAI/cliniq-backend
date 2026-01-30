@@ -1,12 +1,6 @@
 using Clinic.Infrastructure.Contracts.Patients;
-using Clinic.Infrastructure.Contracts.Users; // For UpdateProfileRequest/ChangePassword
 using Clinic.Infrastructure.Entities;
-using Clinic.Infrastructure.Errors;
 using Clinic.Infrastructure.Persistence;
-using Clinic.Infrastructure.Abstractions;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using Mapster;
 
 namespace DashboardAPI.Services;
 
@@ -187,8 +181,8 @@ public class PatientService(
             user.FirstName,
             user.LastName,
             user.Email!,
-            DateOnly.MinValue, // Placeholder
-            "Unknown" // Placeholder
+            user.DateOfBirth,
+            user.Gender
         );
 
         return Result.Succeed(response);

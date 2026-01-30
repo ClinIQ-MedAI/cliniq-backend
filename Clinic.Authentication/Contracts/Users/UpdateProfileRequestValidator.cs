@@ -1,4 +1,6 @@
-namespace Clinic.Infrastructure.Contracts.Users;
+using FluentValidation;
+
+namespace Clinic.Authentication.Contracts.Users;
 
 public class UpdateProfileRequestValidator : AbstractValidator<UpdateProfileRequest>
 {

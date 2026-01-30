@@ -11,19 +11,19 @@ public class VerificationRequirementHandler : AuthorizationHandler<VerificationR
         AuthorizationHandlerContext context,
         VerificationRequirement requirement)
     {
-        var emailVerified = context.User.FindFirst("email_verified")?.Value == "true";
-        var phoneVerified = context.User.FindFirst("phone_verified")?.Value == "true";
+        var emailConfirmed = context.User.FindFirst("email_confirmed")?.Value == "true";
+        var phoneConfirmed = context.User.FindFirst("phone_number_confirmed")?.Value == "true";
 
         if (requirement.RequireAny)
         {
-            if (emailVerified || phoneVerified)
+            if (emailConfirmed || phoneConfirmed)
                 context.Succeed(requirement);
         }
         else
         {
-            if ((requirement.RequireEmailVerified && emailVerified) ||
-                (requirement.RequirePhoneVerified && phoneVerified) ||
-                (!requirement.RequireEmailVerified && !requirement.RequirePhoneVerified))
+            if ((requirement.RequireEmailConfirmed && emailConfirmed) ||
+                (requirement.RequirePhoneNumberConfirmed && phoneConfirmed) ||
+                (!requirement.RequireEmailConfirmed && !requirement.RequirePhoneNumberConfirmed))
             {
                 context.Succeed(requirement);
             }

@@ -30,6 +30,12 @@ public class AppDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, 
         // Apply all configurations from assembly
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
 
+        modelBuilder.Entity<ApplicationUser>(entity =>
+        {
+            entity.Property(u => u.Gender)
+                .HasConversion<string>();
+        });
+
         // Configure Shared Primary Key for DoctorProfile
         modelBuilder.Entity<DoctorProfile>(entity =>
         {
@@ -39,6 +45,9 @@ public class AppDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, 
                 .WithOne(u => u.DoctorProfile)
                 .HasForeignKey<DoctorProfile>(d => d.Id)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            entity.Property(d => d.Status)
+                .HasConversion<string>();
         });
 
         // Configure Shared Primary Key for PatientProfile
@@ -50,6 +59,9 @@ public class AppDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, 
                 .WithOne(u => u.PatientProfile)
                 .HasForeignKey<PatientProfile>(p => p.Id)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            entity.Property(p => p.Status)
+                .HasConversion<string>();
         });
 
         // Disable cascade delete for all other FKs (except profile entities)

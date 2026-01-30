@@ -1,4 +1,4 @@
-namespace Clinic.Infrastructure.Contracts.Users;
+namespace Clinic.Authentication.Contracts.Users;
 
 public record UpdateUserRequest(
     string FirstName,

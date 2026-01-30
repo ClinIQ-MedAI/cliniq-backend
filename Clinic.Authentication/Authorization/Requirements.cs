@@ -7,15 +7,15 @@ namespace Clinic.Authentication.Authorization;
 /// </summary>
 public class VerificationRequirement : IAuthorizationRequirement
 {
-    public bool RequireEmailVerified { get; }
-    public bool RequirePhoneVerified { get; }
+    public bool RequireEmailConfirmed { get; }
+    public bool RequirePhoneNumberConfirmed { get; }
     public bool RequireAny { get; }
 
-    public VerificationRequirement(bool requireAny = true, bool requireEmailVerified = false, bool requirePhoneVerified = false)
+    public VerificationRequirement(bool requireAny = true, bool requireEmailConfirmed = false, bool requirePhoneNumberConfirmed = false)
     {
         RequireAny = requireAny;
-        RequireEmailVerified = requireEmailVerified;
-        RequirePhoneVerified = requirePhoneVerified;
+        RequireEmailConfirmed = requireEmailConfirmed;
+        RequirePhoneNumberConfirmed = requirePhoneNumberConfirmed;
     }
 }
 

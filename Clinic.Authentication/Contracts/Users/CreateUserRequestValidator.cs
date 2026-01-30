@@ -1,4 +1,7 @@
-namespace Clinic.Infrastructure.Contracts.Users;
+using FluentValidation;
+using Clinic.Infrastructure.Abstractions.Consts;
+
+namespace Clinic.Authentication.Contracts.Users;
 
 public class CreateUserRequestValidator : AbstractValidator<CreateUserRequest>
 {
@@ -6,7 +9,7 @@ public class CreateUserRequestValidator : AbstractValidator<CreateUserRequest>
     {
         RuleFor(u => u.FirstName)
             .NotEmpty()
-            .Length(3,100);
+            .Length(3, 100);
 
         RuleFor(u => u.LastName)
             .NotEmpty()
@@ -20,7 +23,7 @@ public class CreateUserRequestValidator : AbstractValidator<CreateUserRequest>
             .NotEmpty()
             .Matches(RegexPatterns.Password)
             .WithMessage("Password must be at least 8 chars and Contain: LowerCase, UpperCase, Number, and NonAlphanumeric");
-        
+
         RuleFor(u => u.Roles)
             .NotNull()
             .NotEmpty();

@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Identity;
 using Clinic.Infrastructure.Abstractions;
 
+using Clinic.Infrastructure.Abstractions.Enums;
+
 namespace Clinic.Infrastructure.Entities;
 
 /// <summary>
@@ -14,12 +16,8 @@ public class ApplicationUser : IdentityUser, IApplicationUser
     public bool IsDisabled { get; set; }
 
     // Registration fields
-    public DateTime? DateOfBirth { get; set; }
-    public string? Gender { get; set; }  // "Male", "Female", "Other"
-
-    // Verification flags
-    public bool EmailVerified { get; set; }
-    public bool PhoneVerified { get; set; }
+    public DateOnly? DateOfBirth { get; set; }
+    public Gender? Gender { get; set; }
 
     // Navigation properties for profile types (1-to-0..1 relationships)
     public DoctorProfile? DoctorProfile { get; set; }

@@ -1,5 +1,5 @@
 using Clinic.Infrastructure.Contracts.Doctors;
-using Clinic.Infrastructure.Contracts.Users;
+using Clinic.Authentication.Contracts.Users;
 
 namespace DashboardAPI.Services;
 

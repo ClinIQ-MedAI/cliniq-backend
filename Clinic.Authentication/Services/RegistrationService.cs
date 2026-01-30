@@ -36,12 +36,7 @@ public class RegistrationService(UserManager<ApplicationUser> userManager) : IRe
             PhoneNumber = request.Phone,
             FirstName = request.FirstName,
             LastName = request.LastName,
-            DateOfBirth = request.DateOfBirth,
-            Gender = request.Gender,
-            EmailConfirmed = false,
-            PhoneNumberConfirmed = false,
-            EmailVerified = false,
-            PhoneVerified = false
+            DateOfBirth = request.DateOfBirth
         };
 
         var result = await _userManager.CreateAsync(user, request.Password);

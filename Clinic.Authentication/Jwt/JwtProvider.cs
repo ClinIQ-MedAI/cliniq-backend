@@ -36,8 +36,8 @@ public class JwtProvider(
             new(nameof(roles), JsonSerializer.Serialize(roles), JsonClaimValueTypes.JsonArray),
             new(nameof(permissions), JsonSerializer.Serialize(permissions), JsonClaimValueTypes.JsonArray),
             // Verification claims
-            new("email_verified", user.EmailVerified.ToString().ToLower()),
-            new("phone_verified", user.PhoneVerified.ToString().ToLower()),
+            new("email_confirmed", user.EmailConfirmed.ToString().ToLower()),
+            new("phone_number_confirmed", user.PhoneNumberConfirmed.ToString().ToLower()),
             // Status claims
             new("patient_status", patientStatus.ToString()),
             new("doctor_status", doctorStatus.ToString())
