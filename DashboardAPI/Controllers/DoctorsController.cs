@@ -1,6 +1,5 @@
-using Clinic.Infrastructure.Contracts.Doctors;
+using Clinic.Infrastructure.Contracts.Doctors; // Restored for CreateDoctorRequest
 using DashboardAPI.Services;
-using Clinic.Infrastructure.Authentication;
 
 namespace DashboardAPI.Controllers;
 

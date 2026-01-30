@@ -1,4 +1,4 @@
-namespace Clinic.Infrastructure.Authentication;
+namespace Clinic.Authentication.Authorization;
 
 /// <summary>
 /// Defines the application type for login context.

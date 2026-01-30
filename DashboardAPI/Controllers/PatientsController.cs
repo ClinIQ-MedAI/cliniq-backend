@@ -1,8 +1,5 @@
-using Clinic.Infrastructure.Abstractions;
 using Clinic.Infrastructure.Contracts.Patients;
-using Clinic.Infrastructure.Authentication;
 using DashboardAPI.Services;
-using Microsoft.AspNetCore.Mvc;
 
 namespace DashboardAPI.Controllers;
 

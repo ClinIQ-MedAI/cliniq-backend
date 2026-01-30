@@ -16,9 +16,14 @@ public class CacheService(IDistributedCache distributedCache) : ICacheService
             : JsonSerializer.Deserialize<T>(stringCachedValue);
     }
 
-    public async Task SetAsync<T>(string key, T value, CancellationToken cancellationToken = default) where T : class
+    public async Task SetAsync<T>(string key, T value, TimeSpan? ttl = null, CancellationToken cancellationToken = default) where T : class
     {
-        await _distributedCache.SetStringAsync(key, JsonSerializer.Serialize(value), cancellationToken);
+        var options = new DistributedCacheEntryOptions();
+
+        if (ttl.HasValue)
+            options.AbsoluteExpirationRelativeToNow = ttl.Value;
+
+        await _distributedCache.SetStringAsync(key, JsonSerializer.Serialize(value), options, cancellationToken);
     }
 
     public async Task RemoveAsync(string key, CancellationToken cancellationToken = default)

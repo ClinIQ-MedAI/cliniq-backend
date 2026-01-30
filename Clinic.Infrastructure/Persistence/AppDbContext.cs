@@ -21,7 +21,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, 
     // Domain entity sets
     public DbSet<DoctorProfile> DoctorProfiles => Set<DoctorProfile>();
     public DbSet<PatientProfile> PatientProfiles => Set<PatientProfile>();
-    public DbSet<OtpCode> OtpCodes => Set<OtpCode>();
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

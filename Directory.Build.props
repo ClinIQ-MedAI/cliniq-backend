@@ -33,7 +33,6 @@
     <!-- Clinic Infrastructure Usings (shared library) -->
     <Using Include="Clinic.Infrastructure.Errors" />
     <Using Include="Clinic.Infrastructure.Abstractions" />
-    <Using Include="Clinic.Infrastructure.Authentication" />
     <Using Include="Clinic.Infrastructure.Extensions" />
   </ItemGroup>
 </Project>

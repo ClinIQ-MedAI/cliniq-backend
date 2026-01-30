@@ -7,6 +7,7 @@ global using PatientAPI.Mapping;
 
 // Clinic.Authentication namespaces
 global using Clinic.Authentication.Contracts;
+global using Clinic.Authentication.Authorization;
 
 // Clinic.Infrastructure namespaces
 global using Clinic.Infrastructure.Abstractions;

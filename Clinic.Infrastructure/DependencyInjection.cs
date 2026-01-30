@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Clinic.Infrastructure.Services;
 
 namespace Clinic.Infrastructure;
 
@@ -32,6 +33,16 @@ public static class DependencyInjection
 
         // Note: Authentication services are now registered via Clinic.Authentication.AddAuthenticationModule()
         // Infrastructure only provides the core database and identity setup
+
+        // Redis Cache
+        services.AddStackExchangeRedisCache(options =>
+        {
+            options.Configuration = configuration.GetConnectionString("Redis");
+        });
+
+        // Application Services
+        services.AddScoped<ICacheService, CacheService>();
+        services.AddScoped<IVerificationService, VerificationService>();
 
         return services;
     }

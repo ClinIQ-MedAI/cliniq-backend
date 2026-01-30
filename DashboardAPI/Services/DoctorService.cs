@@ -1,13 +1,8 @@
 using Clinic.Infrastructure.Contracts.Doctors;
 using Clinic.Infrastructure.Entities;
 using Clinic.Infrastructure.Persistence;
-using Clinic.Infrastructure.Abstractions;
 using Clinic.Infrastructure.Abstractions.Consts;
-using Mapster;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Http;
-using Clinic.Infrastructure.Contracts.Users; // For UpdateProfileRequest/ChangePasswordRequest if shared
+using Clinic.Infrastructure.Contracts.Users;
 
 namespace DashboardAPI.Services;
 
@@ -49,8 +44,8 @@ public class DoctorService(
                 user.FirstName,
                 user.LastName,
                 user.Email!,
-                user.IsDisabled, // IsDisabled equivalent
-                roles!
+                user.IsDisabled, // IsDisabled
+                roles!           // Roles
             ));
         }
 

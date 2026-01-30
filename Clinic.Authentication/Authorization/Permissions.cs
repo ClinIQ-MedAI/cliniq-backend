@@ -1,4 +1,4 @@
-namespace Clinic.Infrastructure.Authentication;
+namespace Clinic.Authentication.Authorization;
 
 public static class Permissions
 {

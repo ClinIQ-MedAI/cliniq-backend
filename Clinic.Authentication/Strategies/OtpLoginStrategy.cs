@@ -1,6 +1,6 @@
 using Clinic.Authentication.Contracts;
 using Clinic.Infrastructure.Entities;
-using Clinic.Infrastructure.Persistence;
+using Clinic.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace Clinic.Authentication.Strategies;
@@ -8,9 +8,10 @@ namespace Clinic.Authentication.Strategies;
 /// <summary>
 /// Login strategy using OTP code.
 /// </summary>
-public class OtpLoginStrategy(AppDbContext context) : ILoginStrategy
+public class OtpLoginStrategy(ICacheService cacheService) : ILoginStrategy
 {
-    private readonly AppDbContext _context = context;
+    private readonly ICacheService _cacheService = cacheService;
+    private const string OtpPrefix = "otp:email:";
 
     public bool CanHandle(LoginRequest request)
     {
@@ -19,20 +20,18 @@ public class OtpLoginStrategy(AppDbContext context) : ILoginStrategy
 
     public async Task<bool> ValidateAsync(ApplicationUser user, LoginRequest request, CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrEmpty(request.OtpCode))
+        if (string.IsNullOrEmpty(request.OtpCode) || string.IsNullOrWhiteSpace(user.Email))
             return false;
 
-        // Find valid OTP for this user
-        var otp = await _context.Set<OtpCode>()
-            .Where(o => o.UserId == user.Id && o.Code == request.OtpCode && !o.IsUsed && o.ExpiresAt > DateTime.UtcNow)
-            .FirstOrDefaultAsync(cancellationToken);
+        // Verify OTP from Redis
+        var cacheKey = $"{OtpPrefix}{user.Email}";
+        var storedCode = await _cacheService.GetAsync<string>(cacheKey, cancellationToken);
 
-        if (otp == null)
+        if (storedCode == null || storedCode != request.OtpCode)
             return false;
 
-        // Mark OTP as used
-        otp.IsUsed = true;
-        await _context.SaveChangesAsync(cancellationToken);
+        // Mark OTP as used (remove it)
+        await _cacheService.RemoveAsync(cacheKey, cancellationToken);
 
         return true;
     }
