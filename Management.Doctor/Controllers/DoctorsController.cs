@@ -54,11 +54,11 @@ public class DoctorsController(IDoctorService doctorService) : ControllerBase
         return result.IsSucceed ? NoContent() : result.ToProblem();
     }
 
-    [HttpPost("{id}/accept")]
+    [HttpPost("{id}/approve")]
     [HasPermission(Permissions.UpdateDoctors)]
-    public async Task<IActionResult> Accept([FromRoute] string id)
+    public async Task<IActionResult> Approve([FromRoute] string id)
     {
-        var result = await _doctorService.AcceptAsync(id);
+        var result = await _doctorService.ApproveAsync(id);
         return result.IsSucceed ? NoContent() : result.ToProblem();
     }
 

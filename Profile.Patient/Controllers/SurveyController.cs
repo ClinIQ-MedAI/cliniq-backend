@@ -28,15 +28,12 @@ public class SurveyController(
     [Authorize(Policy = PolicyNames.VerifiedUser)]
     public async Task<IActionResult> SubmitSurvey([FromBody] PatientSurveyRequest request, CancellationToken cancellationToken)
     {
-        var userId = User.GetUserId();
-        if (string.IsNullOrEmpty(userId))
-            return Unauthorized();
+        var userId = User.GetUserId()!;
 
         var result = await _registrationService.SubmitSurveyAsync(userId, request, cancellationToken);
 
-        if (result.IsSucceed)
-            return Ok(new { Message = "Patient profile created successfully." });
-
-        return result.ToProblem();
+        return result.IsSucceed ?
+            Ok(new { Message = "Patient profile created successfully." }) :
+            result.ToProblem();
     }
 }

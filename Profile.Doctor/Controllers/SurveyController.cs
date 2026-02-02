@@ -27,15 +27,12 @@ public class SurveyController(
     [Authorize(Policy = PolicyNames.VerifiedUser)]
     public async Task<IActionResult> SubmitSurvey([FromBody] DoctorSurveyRequest request, CancellationToken cancellationToken)
     {
-        var userId = User.GetUserId();
-        if (string.IsNullOrEmpty(userId))
-            return Unauthorized();
+        var userId = User.GetUserId()!;
 
         var result = await _registrationService.SubmitSurveyAsync(userId, request, cancellationToken);
 
-        if (result.IsSucceed)
-            return Ok(new { Message = "Doctor profile created. Awaiting verification by admin." });
-
-        return result.ToProblem();
+        return result.IsSucceed ?
+            Ok(new { Message = "Doctor profile created. Awaiting verification by admin." }) :
+            result.ToProblem();
     }
 }

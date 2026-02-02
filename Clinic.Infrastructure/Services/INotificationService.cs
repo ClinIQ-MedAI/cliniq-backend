@@ -1,4 +1,4 @@
-namespace Profile.Doctor.Services;
+namespace Clinic.Infrastructure.Services;
 
 public interface INotificationService
 {

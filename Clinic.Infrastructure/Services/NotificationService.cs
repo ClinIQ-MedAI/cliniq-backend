@@ -2,8 +2,11 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using Clinic.Infrastructure.Helpers;
 using Clinic.Infrastructure.Entities;
 using Clinic.Infrastructure.Persistence;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Http;
 
-namespace Profile.Doctor.Services;
+namespace Clinic.Infrastructure.Services;
 
 public class NotificationService(
     AppDbContext context,

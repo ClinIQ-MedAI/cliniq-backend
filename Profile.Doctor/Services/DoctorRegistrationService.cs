@@ -27,11 +27,9 @@ public class DoctorRegistrationService(
     public async Task<Result> SubmitSurveyAsync(string userId, DoctorSurveyRequest request, CancellationToken cancellationToken)
     {
         var user = await _userManager.FindByIdAsync(userId);
-        if (user == null)
-            return Result.Failure(UserErrors.UserNotFound);
 
         // Check if user is verified
-        if (!user.EmailConfirmed && !user.PhoneNumberConfirmed)
+        if (!user!.EmailConfirmed && !user.PhoneNumberConfirmed)
             return Result.Failure(new Error("User.NotVerified", "Please verify email or phone before submitting survey", StatusCodes.Status403Forbidden));
 
         // Check if doctor profile already exists
@@ -53,14 +51,7 @@ public class DoctorRegistrationService(
 
         _context.DoctorProfiles.Add(doctorProfile);
 
-        try
-        {
-            await _context.SaveChangesAsync(cancellationToken);
-        }
-        catch
-        {
-            throw;
-        }
+        await _context.SaveChangesAsync(cancellationToken);
 
         return Result.Succeed();
     }

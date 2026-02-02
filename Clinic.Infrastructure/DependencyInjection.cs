@@ -1,11 +1,11 @@
 using Clinic.Infrastructure.Entities;
 using Clinic.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Clinic.Infrastructure.Services;
+using Clinic.Infrastructure.Settings;
+using Microsoft.AspNetCore.Identity.UI.Services;
 
 namespace Clinic.Infrastructure;
 
@@ -22,7 +22,7 @@ public static class DependencyInjection
             options.Password.RequireLowercase = true;
             options.Password.RequireNonAlphanumeric = true;
             options.Password.RequireUppercase = true;
-            options.Password.RequiredLength = 6;
+            options.Password.RequiredLength = 8;
             options.User.RequireUniqueEmail = true;
         })
         .AddEntityFrameworkStores<AppDbContext>()
@@ -43,6 +43,12 @@ public static class DependencyInjection
         // Application Services
         services.AddScoped<ICacheService, CacheService>();
         services.AddScoped<IOtpService, OtpService>();
+
+        // Email Configuration
+        services.Configure<MailSettings>(configuration.GetSection(nameof(MailSettings)));
+        services.AddTransient<IEmailSender, EmailService>();
+
+        services.AddScoped<INotificationService, NotificationService>();
 
         return services;
     }

@@ -27,11 +27,9 @@ public class PatientRegistrationService(
     public async Task<Result> SubmitSurveyAsync(string userId, PatientSurveyRequest request, CancellationToken cancellationToken)
     {
         var user = await _userManager.FindByIdAsync(userId);
-        if (user == null)
-            return Result.Failure(UserErrors.UserNotFound);
 
         // Check if user is verified
-        if (!user.EmailConfirmed && !user.PhoneNumberConfirmed)
+        if (!user!.EmailConfirmed && !user.PhoneNumberConfirmed)
             return Result.Failure(new Error("User.NotVerified", "Please verify email or phone before submitting survey", StatusCodes.Status403Forbidden));
 
         // Check if patient profile already exists

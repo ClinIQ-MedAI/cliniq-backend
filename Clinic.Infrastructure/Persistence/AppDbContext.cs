@@ -1,9 +1,5 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Http;
 using Clinic.Infrastructure.Entities;
-using Clinic.Infrastructure.Abstractions;
-using Clinic.Infrastructure.Extensions;
 
 namespace Clinic.Infrastructure.Persistence;
 

@@ -10,6 +10,6 @@ public interface IDoctorService
     Task<Result> UpdateAsync(string id, UpdateDoctorRequest request, CancellationToken cancellationToken = default);
     Task<Result> UpdateStatusAsync(string id, bool active);
     Task<Result> Unlock(string id);
-    Task<Result> AcceptAsync(string id);
+    Task<Result> ApproveAsync(string id);
     Task<Result> RejectAsync(string id, string reason);
 }

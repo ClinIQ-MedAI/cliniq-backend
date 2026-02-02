@@ -16,11 +16,8 @@ public class UserService(
     {
         var user = await _userManager.FindByIdAsync(userId);
 
-        if (user is null)
-            return Result.Failure<UserProfileResponse>(UserErrors.UserNotFound);
-
         var response = new UserProfileResponse(
-            user.Email!,
+            user!.Email!,
             user.UserName!,
             user.FirstName,
             user.LastName
@@ -33,10 +30,7 @@ public class UserService(
     {
         var user = await _userManager.FindByIdAsync(userId);
 
-        if (user is null)
-            return Result.Failure(UserErrors.UserNotFound);
-
-        user.FirstName = request.FirstName;
+        user!.FirstName = request.FirstName;
         user.LastName = request.LastName;
 
         await _userManager.UpdateAsync(user);
@@ -48,10 +42,7 @@ public class UserService(
     {
         var user = await _userManager.FindByIdAsync(userId);
 
-        if (user is null)
-            return Result.Failure(UserErrors.UserNotFound);
-
-        var result = await _userManager.ChangePasswordAsync(user, request.CurrentPassword, request.NewPassword);
+        var result = await _userManager.ChangePasswordAsync(user!, request.CurrentPassword, request.NewPassword);
 
         if (result.Succeeded)
             return Result.Succeed();

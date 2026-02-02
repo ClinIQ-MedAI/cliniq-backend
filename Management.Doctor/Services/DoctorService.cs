@@ -183,7 +183,7 @@ public class DoctorService(
             : Result.Failure(new Error(result.Errors.First().Code, result.Errors.First().Description, StatusCodes.Status400BadRequest));
     }
 
-    public async Task<Result> AcceptAsync(string id)
+    public async Task<Result> ApproveAsync(string id)
     {
         var doctorProfile = await _context.DoctorProfiles.FirstOrDefaultAsync(dp => dp.Id == id);
         if (doctorProfile == null)

@@ -12,15 +12,19 @@ public class ProfileController(IUserService userService) : ControllerBase
     [HttpGet("")]
     public async Task<IActionResult> Info()
     {
-        var result = await _userService.GetProfileAsync(User.GetUserId()!);
+        var userId = User.GetUserId()!;
+
+        var result = await _userService.GetProfileAsync(userId);
 
         return Ok(result.Value);
     }
 
-    [HttpPut("info")]
+    [HttpPut("")]
     public async Task<IActionResult> Info([FromBody] UpdateProfileRequest request)
     {
-        await _userService.UpdateProfileAsync(User.GetUserId()!, request);
+        var userId = User.GetUserId()!;
+
+        await _userService.UpdateProfileAsync(userId, request);
 
         return NoContent();
     }
@@ -28,7 +32,9 @@ public class ProfileController(IUserService userService) : ControllerBase
     [HttpPut("change-password")]
     public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
     {
-        var result = await _userService.ChangePasswordAsync(User.GetUserId()!, request);
+        var userId = User.GetUserId()!;
+
+        var result = await _userService.ChangePasswordAsync(userId, request);
 
         return result.IsSucceed ? NoContent() : result.ToProblem();
     }
