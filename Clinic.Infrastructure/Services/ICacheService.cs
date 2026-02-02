@@ -6,5 +6,3 @@ public interface ICacheService
     Task SetAsync<T>(string key, T value, TimeSpan? ttl = null, CancellationToken cancellationToken = default) where T : class;
     Task RemoveAsync(string key, CancellationToken cancellationToken = default);
 }
-
-

@@ -1,17 +1,15 @@
 using Clinic.Authentication.Contracts;
 using Clinic.Infrastructure.Entities;
 using Clinic.Infrastructure.Services;
-using Microsoft.EntityFrameworkCore;
 
 namespace Clinic.Authentication.Strategies;
 
 /// <summary>
 /// Login strategy using OTP code.
 /// </summary>
-public class OtpLoginStrategy(ICacheService cacheService) : ILoginStrategy
+public class OtpLoginStrategy(IOtpService otpService) : ILoginStrategy
 {
-    private readonly ICacheService _cacheService = cacheService;
-    private const string OtpPrefix = "otp:email:";
+    private readonly IOtpService _otpService = otpService;
 
     public bool CanHandle(LoginRequest request)
     {
@@ -23,16 +21,12 @@ public class OtpLoginStrategy(ICacheService cacheService) : ILoginStrategy
         if (string.IsNullOrEmpty(request.OtpCode) || string.IsNullOrWhiteSpace(user.Email))
             return false;
 
-        // Verify OTP from Redis
-        var cacheKey = $"{OtpPrefix}{user.Email}";
-        var storedCode = await _cacheService.GetAsync<string>(cacheKey, cancellationToken);
-
-        if (storedCode == null || storedCode != request.OtpCode)
-            return false;
-
-        // Mark OTP as used (remove it)
-        await _cacheService.RemoveAsync(cacheKey, cancellationToken);
-
-        return true;
+        // Validate and consume OTP
+        return await _otpService.ValidateAndConsumeAsync(
+            OtpContext.Login,
+            OtpIdentifierType.Email,
+            user.Email,
+            request.OtpCode,
+            cancellationToken);
     }
 }

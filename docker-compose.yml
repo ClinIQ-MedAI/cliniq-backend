@@ -1,6 +1,6 @@
 services:
   sqlserver:
-    image: d
+    image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: ClinicAPI-SQL
     environment:
       - ACCEPT_EULA=Y

@@ -10,7 +10,7 @@ namespace Clinic.Authentication.Controllers;
 /// Unified authentication controller.
 /// Handles registration, login, verification, and password reset.
 /// </summary>
-[Route("api/auth")]
+[Route("auth")]
 [ApiController]
 public class AuthController(
     IRegistrationService registrationService,

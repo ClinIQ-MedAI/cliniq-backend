@@ -1,23 +1,15 @@
 using Clinic.Authentication.Contracts;
-using Clinic.Infrastructure.Services;
 using Clinic.Infrastructure.Entities;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Hosting;
+using Clinic.Infrastructure.Services;
 
 namespace Clinic.Authentication.Services;
 
 public class VerificationService(
-    ICacheService cacheService,
-    UserManager<ApplicationUser> userManager,
-    IWebHostEnvironment environment) : IVerificationService
+    IOtpService otpService,
+    UserManager<ApplicationUser> userManager) : IVerificationService
 {
-    private readonly ICacheService _cacheService = cacheService;
+    private readonly IOtpService _otpService = otpService;
     private readonly UserManager<ApplicationUser> _userManager = userManager;
-    private readonly IWebHostEnvironment _environment = environment;
-
-    private const string EmailOtpPrefix = "otp:email:";
-    private const string PhoneOtpPrefix = "otp:phone:";
-    private static readonly TimeSpan OtpTtl = TimeSpan.FromMinutes(10);
 
     public async Task<Result> SendEmailOtpAsync(string email, CancellationToken cancellationToken = default)
     {
@@ -28,24 +20,20 @@ public class VerificationService(
         if (user.EmailConfirmed)
             return Result.Failure(Error.Conflict("User.AlreadyVerified", "Email already verified"));
 
-        // Generate 5-digit OTP
-        var code = GenerateOtp();
-        var cacheKey = $"{EmailOtpPrefix}{email}";
-
-        // Store in Redis with TTL
-        await _cacheService.SetAsync(cacheKey, code, OtpTtl, cancellationToken);
+        // Generate and store OTP
+        await _otpService.GenerateAndStoreAsync(
+            OtpContext.Verification,
+            OtpIdentifierType.Email,
+            email,
+            cancellationToken);
 
         // TODO: Send email
-        // For development, we log it or it will be visible in Redis
-        // Console.WriteLine($"Email OTP for {email}: {code}");
 
         return Result.Succeed();
     }
 
     public async Task<Result> SendPhoneOtpAsync(string phone, CancellationToken cancellationToken = default)
     {
-        // Phone lookup might vary depending on how it's stored (normalized?)
-        // Assuming unique phone numbers
         var user = _userManager.Users.FirstOrDefault(u => u.PhoneNumber == phone);
         if (user == null)
             return Result.Failure(Error.Failure("User.NotFound", "User not found"));
@@ -53,11 +41,12 @@ public class VerificationService(
         if (user.PhoneNumberConfirmed)
             return Result.Failure(Error.Conflict("User.AlreadyVerified", "Phone already verified"));
 
-        // Generate 5-digit OTP
-        var code = GenerateOtp();
-        var cacheKey = $"{PhoneOtpPrefix}{phone}";
-
-        await _cacheService.SetAsync(cacheKey, code, OtpTtl, cancellationToken);
+        // Generate and store OTP
+        await _otpService.GenerateAndStoreAsync(
+            OtpContext.Verification,
+            OtpIdentifierType.Phone,
+            phone,
+            cancellationToken);
 
         // TODO: Send SMS
 
@@ -73,17 +62,21 @@ public class VerificationService(
         if (user.EmailConfirmed)
             return Result.Failure(Error.Conflict("User.AlreadyVerified", "Email already verified"));
 
-        var cacheKey = $"{EmailOtpPrefix}{request.Email}";
-        var storedCode = await _cacheService.GetAsync<string>(cacheKey, cancellationToken);
+        // Validate and consume OTP
+        var isValid = await _otpService.ValidateAndConsumeAsync(
+            OtpContext.Verification,
+            OtpIdentifierType.Email,
+            request.Email,
+            request.Code,
+            cancellationToken);
 
-        if (storedCode == null || storedCode != request.Code)
+        if (!isValid)
         {
             return Result.Failure(new Error("Auth.InvalidOtp", "Invalid or expired OTP", StatusCodes.Status400BadRequest));
         }
 
         user.EmailConfirmed = true;
         await _userManager.UpdateAsync(user);
-        await _cacheService.RemoveAsync(cacheKey, cancellationToken);
 
         return Result.Succeed();
     }
@@ -97,28 +90,22 @@ public class VerificationService(
         if (user.PhoneNumberConfirmed)
             return Result.Failure(Error.Conflict("User.AlreadyVerified", "Phone already verified"));
 
-        var cacheKey = $"{PhoneOtpPrefix}{request.Phone}";
-        var storedCode = await _cacheService.GetAsync<string>(cacheKey, cancellationToken);
+        // Validate and consume OTP
+        var isValid = await _otpService.ValidateAndConsumeAsync(
+            OtpContext.Verification,
+            OtpIdentifierType.Phone,
+            request.Phone,
+            request.Code,
+            cancellationToken);
 
-        if (storedCode == null || storedCode != request.Code)
+        if (!isValid)
         {
             return Result.Failure(new Error("Auth.InvalidOtp", "Invalid or expired OTP", StatusCodes.Status400BadRequest));
         }
 
         user.PhoneNumberConfirmed = true;
         await _userManager.UpdateAsync(user);
-        await _cacheService.RemoveAsync(cacheKey, cancellationToken);
 
         return Result.Succeed();
-    }
-
-    private string GenerateOtp()
-    {
-        if (_environment.IsDevelopment())
-        {
-            return "12345";
-        }
-
-        return new Random().Next(10000, 99999).ToString();
     }
 }

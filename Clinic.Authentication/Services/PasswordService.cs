@@ -1,18 +1,19 @@
 using Clinic.Authentication.Contracts;
-using Clinic.Infrastructure.Abstractions;
 using Clinic.Infrastructure.Entities;
-using Clinic.Infrastructure.Errors;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
+using Clinic.Infrastructure.Services;
 
 namespace Clinic.Authentication.Services;
 
 /// <summary>
 /// Password management service (forgot/reset).
+/// Uses IOtpService for OTP operations.
 /// </summary>
-public class PasswordService(UserManager<ApplicationUser> userManager) : IPasswordService
+public class PasswordService(
+    UserManager<ApplicationUser> userManager,
+    IOtpService otpService) : IPasswordService
 {
     private readonly UserManager<ApplicationUser> _userManager = userManager;
+    private readonly IOtpService _otpService = otpService;
 
     public async Task<Result> ForgotPasswordAsync(ForgotPasswordRequest request, CancellationToken cancellationToken = default)
     {
@@ -23,11 +24,14 @@ public class PasswordService(UserManager<ApplicationUser> userManager) : IPasswo
             return Result.Succeed();
         }
 
-        // Generate password reset token
-        var resetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
+        // Generate and store OTP
+        await _otpService.GenerateAndStoreAsync(
+            OtpContext.ResetPassword,
+            OtpIdentifierType.Email,
+            request.Email,
+            cancellationToken);
 
-        // TODO: Send reset token to email
-        // The token should be URL-encoded and sent via email service
+        // TODO: Send OTP to email
 
         return Result.Succeed();
     }
@@ -38,11 +42,31 @@ public class PasswordService(UserManager<ApplicationUser> userManager) : IPasswo
         if (user == null)
             return Result.Failure(UserErrors.UserNotFound);
 
-        var result = await _userManager.ResetPasswordAsync(user, request.Code, request.NewPassword);
+        // Validate and consume OTP
+        var isValid = await _otpService.ValidateAndConsumeAsync(
+            OtpContext.ResetPassword,
+            OtpIdentifierType.Email,
+            request.Email,
+            request.Code,
+            cancellationToken);
 
-        if (!result.Succeeded)
+        if (!isValid)
         {
-            var error = result.Errors.First();
+            return Result.Failure(new Error("InvalidToken", "Invalid or expired reset code.", StatusCodes.Status400BadRequest));
+        }
+
+        // Remove old password and set new one
+        var removeResult = await _userManager.RemovePasswordAsync(user);
+        if (!removeResult.Succeeded)
+        {
+            var error = removeResult.Errors.First();
+            return Result.Failure(new Error(error.Code, error.Description, StatusCodes.Status400BadRequest));
+        }
+
+        var addResult = await _userManager.AddPasswordAsync(user, request.NewPassword);
+        if (!addResult.Succeeded)
+        {
+            var error = addResult.Errors.First();
             return Result.Failure(new Error(error.Code, error.Description, StatusCodes.Status400BadRequest));
         }
 

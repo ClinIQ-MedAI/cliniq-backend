@@ -1,3 +1,5 @@
+using Clinic.Infrastructure.Entities;
+
 namespace Clinic.Infrastructure.Contracts.Doctors;
 
 public record DoctorResponse(
@@ -6,5 +8,5 @@ public record DoctorResponse(
     string LastName,
     string Email,
     bool IsDisabled,
-    IEnumerable<string> Roles
+    DoctorStatus Status
 );

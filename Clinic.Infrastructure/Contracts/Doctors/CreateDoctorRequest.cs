@@ -1,3 +1,5 @@
+using Clinic.Infrastructure.Abstractions.Enums;
+
 namespace Clinic.Infrastructure.Contracts.Doctors;
 
 public record CreateDoctorRequest(
@@ -5,5 +7,8 @@ public record CreateDoctorRequest(
     string Password,
     string FirstName,
     string LastName,
-    IEnumerable<string> Roles
+    DateOnly DateOfBirth,
+    Gender Gender,
+    string Specialization,
+    string LicenseNumber
 );

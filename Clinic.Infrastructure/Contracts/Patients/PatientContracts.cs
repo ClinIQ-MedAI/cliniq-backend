@@ -1,4 +1,6 @@
 using Clinic.Infrastructure.Abstractions.Enums;
+using Clinic.Infrastructure.Entities;
+
 namespace Clinic.Infrastructure.Contracts.Patients;
 
 public record CreatePatientRequest(
@@ -6,13 +8,16 @@ public record CreatePatientRequest(
     string Password,
     string FirstName,
     string LastName,
-    IEnumerable<string> Roles
+    DateOnly DateOfBirth,
+    Gender Gender
 );
 
 public record UpdatePatientRequest(
-    string FirstName,
-    string LastName,
-    IEnumerable<string> Roles
+    string? Email = null,
+    string? FirstName = null,
+    string? LastName = null,
+    DateOnly? DateOfBirth = null,
+    Gender? Gender = null
 );
 
 public record PatientResponse(
@@ -21,7 +26,7 @@ public record PatientResponse(
     string LastName,
     string Email,
     bool IsDisabled,
-    IEnumerable<string> Roles
+    PatientStatus Status
 );
 
 public record PatientProfileResponse(
@@ -29,6 +34,6 @@ public record PatientProfileResponse(
     string FirstName,
     string LastName,
     string Email,
-    DateOnly? DateOfBirth, // Assuming Profile has extra fields
+    DateOnly? DateOfBirth,
     Gender? Gender
 );
