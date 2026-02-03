@@ -1,3 +1,5 @@
+using Clinic.Infrastructure.Entities.Enums;
+
 namespace Clinic.Infrastructure.Entities;
 
 /// <summary>
@@ -11,6 +13,7 @@ public class DoctorProfile
     /// </summary>
     public string Id { get; set; } = string.Empty;
 
+    public ApplicationUser User { get; set; } = null!;
     /// <summary>
     /// Current status of the doctor profile (verification workflow)
     /// </summary>
@@ -28,6 +31,6 @@ public class DoctorProfile
     // Rejection reason (if rejected by dashboard)
     public string? RejectionReason { get; set; }
 
-    // Navigation property
-    public ApplicationUser User { get; set; } = null!;
+    public ICollection<DoctorSchedule> Schedules { get; set; } = [];
+    public ICollection<DoctorAvailability> AvailabilityDays { get; set; } = [];
 }

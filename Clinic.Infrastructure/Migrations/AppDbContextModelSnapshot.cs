@@ -137,6 +137,65 @@ namespace Clinic.Infrastructure.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("Clinic.Infrastructure.Entities.Booking", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("DoctorScheduleId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PatientId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DoctorScheduleId");
+
+                    b.HasIndex("PatientId");
+
+                    b.ToTable("Bookings", (string)null);
+                });
+
+            modelBuilder.Entity("Clinic.Infrastructure.Entities.DoctorAvailability", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("DayOfWeek")
+                        .HasColumnType("int");
+
+                    b.Property<string>("DoctorId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<TimeSpan>("EndTime")
+                        .HasColumnType("time");
+
+                    b.Property<bool>("IsAvailable")
+                        .HasColumnType("bit");
+
+                    b.Property<TimeSpan>("StartTime")
+                        .HasColumnType("time");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DoctorId");
+
+                    b.ToTable("DoctorAvailabilities", (string)null);
+                });
+
             modelBuilder.Entity("Clinic.Infrastructure.Entities.DoctorProfile", b =>
                 {
                     b.Property<string>("Id")
@@ -167,6 +226,38 @@ namespace Clinic.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("DoctorProfiles");
+                });
+
+            modelBuilder.Entity("Clinic.Infrastructure.Entities.DoctorSchedule", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("BookingCount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
+
+                    b.Property<string>("DoctorId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<bool>("IsAvailable")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DoctorId");
+
+                    b.ToTable("DoctorSchedules", (string)null);
                 });
 
             modelBuilder.Entity("Clinic.Infrastructure.Entities.PatientProfile", b =>
@@ -353,6 +444,36 @@ namespace Clinic.Infrastructure.Migrations
                     b.Navigation("RefreshTokens");
                 });
 
+            modelBuilder.Entity("Clinic.Infrastructure.Entities.Booking", b =>
+                {
+                    b.HasOne("Clinic.Infrastructure.Entities.DoctorSchedule", "DoctorSchedule")
+                        .WithMany("Bookings")
+                        .HasForeignKey("DoctorScheduleId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Clinic.Infrastructure.Entities.PatientProfile", "Patient")
+                        .WithMany()
+                        .HasForeignKey("PatientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("DoctorSchedule");
+
+                    b.Navigation("Patient");
+                });
+
+            modelBuilder.Entity("Clinic.Infrastructure.Entities.DoctorAvailability", b =>
+                {
+                    b.HasOne("Clinic.Infrastructure.Entities.DoctorProfile", "Doctor")
+                        .WithMany("AvailabilityDays")
+                        .HasForeignKey("DoctorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Doctor");
+                });
+
             modelBuilder.Entity("Clinic.Infrastructure.Entities.DoctorProfile", b =>
                 {
                     b.HasOne("Clinic.Infrastructure.Entities.ApplicationUser", "User")
@@ -362,6 +483,17 @@ namespace Clinic.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Clinic.Infrastructure.Entities.DoctorSchedule", b =>
+                {
+                    b.HasOne("Clinic.Infrastructure.Entities.DoctorProfile", "Doctor")
+                        .WithMany("Schedules")
+                        .HasForeignKey("DoctorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Doctor");
                 });
 
             modelBuilder.Entity("Clinic.Infrastructure.Entities.PatientProfile", b =>
@@ -431,6 +563,18 @@ namespace Clinic.Infrastructure.Migrations
                     b.Navigation("DoctorProfile");
 
                     b.Navigation("PatientProfile");
+                });
+
+            modelBuilder.Entity("Clinic.Infrastructure.Entities.DoctorProfile", b =>
+                {
+                    b.Navigation("AvailabilityDays");
+
+                    b.Navigation("Schedules");
+                });
+
+            modelBuilder.Entity("Clinic.Infrastructure.Entities.DoctorSchedule", b =>
+                {
+                    b.Navigation("Bookings");
                 });
 #pragma warning restore 612, 618
         }

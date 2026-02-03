@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Clinic.Infrastructure.Abstractions;
-
-using Clinic.Infrastructure.Abstractions.Enums;
+using Clinic.Infrastructure.Entities.Enums;
 
 namespace Clinic.Infrastructure.Entities;
 

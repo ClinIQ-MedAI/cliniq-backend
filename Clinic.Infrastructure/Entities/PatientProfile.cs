@@ -1,3 +1,5 @@
+using Clinic.Infrastructure.Entities.Enums;
+
 namespace Clinic.Infrastructure.Entities;
 
 /// <summary>

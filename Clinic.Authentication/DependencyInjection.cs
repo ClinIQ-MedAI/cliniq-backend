@@ -2,13 +2,10 @@ using Clinic.Authentication.Authorization;
 using Clinic.Authentication.Jwt;
 using Clinic.Authentication.Services;
 using Clinic.Authentication.Strategies;
-using Clinic.Infrastructure.Entities;
+using Clinic.Infrastructure.Entities.Enums;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
 
 namespace Clinic.Authentication;
 

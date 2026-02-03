@@ -2,9 +2,8 @@ using Clinic.Authentication.Contracts;
 using Clinic.Authentication.Jwt;
 using Clinic.Authentication.Strategies;
 using Clinic.Infrastructure.Entities;
+using Clinic.Infrastructure.Entities.Enums;
 using Clinic.Infrastructure.Persistence;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 
 namespace Clinic.Authentication.Services;
 

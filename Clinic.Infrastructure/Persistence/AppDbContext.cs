@@ -17,6 +17,9 @@ public class AppDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, 
     // Domain entity sets
     public DbSet<DoctorProfile> DoctorProfiles => Set<DoctorProfile>();
     public DbSet<PatientProfile> PatientProfiles => Set<PatientProfile>();
+    public DbSet<Booking> Bookings => Set<Booking>();
+    public DbSet<DoctorSchedule> DoctorSchedules => Set<DoctorSchedule>();
+    public DbSet<DoctorAvailability> DoctorAvailabilities => Set<DoctorAvailability>();
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

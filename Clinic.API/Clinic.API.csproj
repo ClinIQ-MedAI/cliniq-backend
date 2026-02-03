@@ -18,10 +18,13 @@
   <ItemGroup>
     <ProjectReference Include="..\Clinic.Authentication\Clinic.Authentication.csproj" />
     <ProjectReference Include="..\Clinic.Infrastructure\Clinic.Infrastructure.csproj" />
-    <ProjectReference Include="..\Profile.Patient\Profile.Patient.csproj" />
-    <ProjectReference Include="..\Profile.Doctor\Profile.Doctor.csproj" />
-    <ProjectReference Include="..\Management.Doctor\Management.Doctor.csproj" />
-    <ProjectReference Include="..\Management.Patient\Management.Patient.csproj" />
+    <ProjectReference Include="..\Patient.Profile\Patient.Profile.csproj" />
+    <ProjectReference Include="..\Doctor.Profile\Doctor.Profile.csproj" />
+    <ProjectReference Include="..\Doctor.Management\Doctor.Management.csproj" />
+    <ProjectReference Include="..\Patient.Management\Patient.Management.csproj" />
+    <ProjectReference Include="..\Booking.Management\Booking.Management.csproj" />
+    <ProjectReference Include="..\Booking.Doctor\Booking.Doctor.csproj" />
+    <ProjectReference Include="..\Booking.Patient\Booking.Patient.csproj" />
   </ItemGroup>
 
 </Project>

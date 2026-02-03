@@ -7,15 +7,21 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Clinic.Infrastructure", "Cl
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Clinic.Authentication", "Clinic.Authentication\Clinic.Authentication.csproj", "{BD033592-F273-4E0C-87BA-37507FA96749}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Profile.Doctor", "Profile.Doctor\Profile.Doctor.csproj", "{4AEB4FE9-7718-484E-BCFB-849A4C70BD98}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Doctor.Profile", "Doctor.Profile\Doctor.Profile.csproj", "{4AEB4FE9-7718-484E-BCFB-849A4C70BD98}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Profile.Patient", "Profile.Patient\Profile.Patient.csproj", "{9BA10462-5C35-4309-B7EA-B7446366CD42}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Patient.Profile", "Patient.Profile\Patient.Profile.csproj", "{9BA10462-5C35-4309-B7EA-B7446366CD42}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Management.Doctor", "Management.Doctor\Management.Doctor.csproj", "{F74EB433-B678-4913-9A9B-BEDBCA7F84B6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Doctor.Management", "Doctor.Management\Doctor.Management.csproj", "{F74EB433-B678-4913-9A9B-BEDBCA7F84B6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Management.Patient", "Management.Patient\Management.Patient.csproj", "{97AB20D0-139D-466F-9361-DBE1A9E519EC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Patient.Management", "Patient.Management\Patient.Management.csproj", "{97AB20D0-139D-466F-9361-DBE1A9E519EC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Clinic.API", "Clinic.API\Clinic.API.csproj", "{9BE1B690-B65B-47AA-8508-4C783696B958}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Booking.Management", "Booking.Management\Booking.Management.csproj", "{70C10F65-6D8B-4253-B286-317668568A2B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Booking.Doctor", "Booking.Doctor\Booking.Doctor.csproj", "{6F599C59-347A-4451-9E40-C87E03EA05C2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Booking.Patient", "Booking.Patient\Booking.Patient.csproj", "{DC85FC80-D0E4-44F3-9B73-1CFCFD65949C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -111,6 +117,42 @@ Global
 		{9BE1B690-B65B-47AA-8508-4C783696B958}.Release|x64.Build.0 = Release|Any CPU
 		{9BE1B690-B65B-47AA-8508-4C783696B958}.Release|x86.ActiveCfg = Release|Any CPU
 		{9BE1B690-B65B-47AA-8508-4C783696B958}.Release|x86.Build.0 = Release|Any CPU
+		{70C10F65-6D8B-4253-B286-317668568A2B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{70C10F65-6D8B-4253-B286-317668568A2B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{70C10F65-6D8B-4253-B286-317668568A2B}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{70C10F65-6D8B-4253-B286-317668568A2B}.Debug|x64.Build.0 = Debug|Any CPU
+		{70C10F65-6D8B-4253-B286-317668568A2B}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{70C10F65-6D8B-4253-B286-317668568A2B}.Debug|x86.Build.0 = Debug|Any CPU
+		{70C10F65-6D8B-4253-B286-317668568A2B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{70C10F65-6D8B-4253-B286-317668568A2B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{70C10F65-6D8B-4253-B286-317668568A2B}.Release|x64.ActiveCfg = Release|Any CPU
+		{70C10F65-6D8B-4253-B286-317668568A2B}.Release|x64.Build.0 = Release|Any CPU
+		{70C10F65-6D8B-4253-B286-317668568A2B}.Release|x86.ActiveCfg = Release|Any CPU
+		{70C10F65-6D8B-4253-B286-317668568A2B}.Release|x86.Build.0 = Release|Any CPU
+		{6F599C59-347A-4451-9E40-C87E03EA05C2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6F599C59-347A-4451-9E40-C87E03EA05C2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6F599C59-347A-4451-9E40-C87E03EA05C2}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{6F599C59-347A-4451-9E40-C87E03EA05C2}.Debug|x64.Build.0 = Debug|Any CPU
+		{6F599C59-347A-4451-9E40-C87E03EA05C2}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{6F599C59-347A-4451-9E40-C87E03EA05C2}.Debug|x86.Build.0 = Debug|Any CPU
+		{6F599C59-347A-4451-9E40-C87E03EA05C2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6F599C59-347A-4451-9E40-C87E03EA05C2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6F599C59-347A-4451-9E40-C87E03EA05C2}.Release|x64.ActiveCfg = Release|Any CPU
+		{6F599C59-347A-4451-9E40-C87E03EA05C2}.Release|x64.Build.0 = Release|Any CPU
+		{6F599C59-347A-4451-9E40-C87E03EA05C2}.Release|x86.ActiveCfg = Release|Any CPU
+		{6F599C59-347A-4451-9E40-C87E03EA05C2}.Release|x86.Build.0 = Release|Any CPU
+		{DC85FC80-D0E4-44F3-9B73-1CFCFD65949C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DC85FC80-D0E4-44F3-9B73-1CFCFD65949C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DC85FC80-D0E4-44F3-9B73-1CFCFD65949C}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{DC85FC80-D0E4-44F3-9B73-1CFCFD65949C}.Debug|x64.Build.0 = Debug|Any CPU
+		{DC85FC80-D0E4-44F3-9B73-1CFCFD65949C}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{DC85FC80-D0E4-44F3-9B73-1CFCFD65949C}.Debug|x86.Build.0 = Debug|Any CPU
+		{DC85FC80-D0E4-44F3-9B73-1CFCFD65949C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DC85FC80-D0E4-44F3-9B73-1CFCFD65949C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DC85FC80-D0E4-44F3-9B73-1CFCFD65949C}.Release|x64.ActiveCfg = Release|Any CPU
+		{DC85FC80-D0E4-44F3-9B73-1CFCFD65949C}.Release|x64.Build.0 = Release|Any CPU
+		{DC85FC80-D0E4-44F3-9B73-1CFCFD65949C}.Release|x86.ActiveCfg = Release|Any CPU
+		{DC85FC80-D0E4-44F3-9B73-1CFCFD65949C}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

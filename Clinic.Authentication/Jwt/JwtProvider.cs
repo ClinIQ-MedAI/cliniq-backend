@@ -1,11 +1,6 @@
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
 using System.Text.Json;
 using Clinic.Infrastructure.Entities;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
+using Clinic.Infrastructure.Entities.Enums;
 
 namespace Clinic.Authentication.Jwt;
 

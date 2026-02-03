@@ -1,4 +1,4 @@
-using Clinic.Infrastructure.Entities;
+using Clinic.Infrastructure.Entities.Enums;
 
 namespace Clinic.Authentication.Contracts;
 
@@ -16,8 +16,8 @@ public record AuthResult(
 )
 {
     public static AuthResult Success(
-        string token, 
-        string refreshToken, 
+        string token,
+        string refreshToken,
         DateTime expiresAt,
         PatientStatus patientStatus,
         DoctorStatus doctorStatus)
