@@ -1,13 +1,10 @@
 using Booking.Patient.Contracts;
 using Booking.Patient.Services;
-using Clinic.Infrastructure.Extensions;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 
 namespace Booking.Patient.Controllers;
 
 [ApiController]
-[Route("bookings")] // Global route? Or split?
+[Route("bookings")]
 public class BookingController : ControllerBase
 {
     private readonly IBookingService _bookingService;
@@ -28,11 +25,10 @@ public class BookingController : ControllerBase
         // Let's check PatientProfile.cs again. It uses Shared PK. So PatientId == UserId.
 
         var userId = User.GetUserId();
-        if (string.IsNullOrEmpty(userId)) return Unauthorized();
 
         try
         {
-            var bookingId = await _bookingService.BookAppointmentAsync(userId, request.DoctorScheduleId, cancellationToken);
+            var bookingId = await _bookingService.BookAppointmentAsync(userId!, request.DoctorScheduleId, cancellationToken);
             return Ok(new { BookingId = bookingId });
         }
         catch (Exception ex)

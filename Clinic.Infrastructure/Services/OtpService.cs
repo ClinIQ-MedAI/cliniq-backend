@@ -4,7 +4,7 @@ namespace Clinic.Infrastructure.Services;
 
 /// <summary>
 /// OTP service implementation using cache for storage.
-/// Generates fixed "12345" OTP in development, random 5-digit in production.
+/// Generates fixed "123456" OTP in development, random 6-digit in production.
 /// </summary>
 public class OtpService(
     ICacheService cacheService,
@@ -93,9 +93,9 @@ public class OtpService(
     {
         if (_environment.IsDevelopment())
         {
-            return "12345";
+            return "123456";
         }
 
-        return Random.Shared.Next(10000, 99999).ToString();
+        return Random.Shared.Next(100000, 999999).ToString();
     }
 }
