@@ -11,4 +11,9 @@ public interface IAuthService
     /// Authenticates a user and returns JWT.
     /// </summary>
     Task<AuthResult> LoginAsync(LoginRequest request, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Sends OTP code to email for login.
+    /// </summary>
+    Task<Result> SendLoginOtpAsync(string email, CancellationToken cancellationToken = default);
 }

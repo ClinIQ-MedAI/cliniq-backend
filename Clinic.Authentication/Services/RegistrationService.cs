@@ -22,7 +22,7 @@ public class RegistrationService(UserManager<ApplicationUser> userManager) : IRe
             return Result.Failure(UserErrors.EmailDuplicated);
 
         // Check phone uniqueness if provided
-        if (!string.IsNullOrEmpty(request.Phone))
+        if (!string.IsNullOrWhiteSpace(request.Phone))
         {
             var phoneExists = _userManager.Users.Any(u => u.PhoneNumber == request.Phone);
             if (phoneExists)

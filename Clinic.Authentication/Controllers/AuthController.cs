@@ -142,4 +142,18 @@ public class AuthController(
 
         return result.ToProblem();
     }
+
+    /// <summary>
+    /// Send OTP code to email for login (passwordless authentication).
+    /// </summary>
+    [HttpPost("send-login-otp")]
+    public async Task<IActionResult> SendLoginOtp([FromBody] SendEmailOtpRequest request, CancellationToken cancellationToken)
+    {
+        var result = await _authService.SendLoginOtpAsync(request.Email, cancellationToken);
+
+        if (result.IsSucceed)
+            return Ok(new { Message = "OTP sent to email for login." });
+
+        return result.ToProblem();
+    }
 }

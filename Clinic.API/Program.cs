@@ -1,4 +1,5 @@
 using Clinic.Infrastructure;
+using Clinic.Infrastructure.Persistence;
 using Clinic.Authentication;
 using Patient.Profile;
 using Doctor.Profile;
@@ -30,6 +31,15 @@ builder.Services.AddOpenApi("v1", options =>
     {
         document.Info.Title = "Clinic API";
         document.Info.Version = "v1";
+
+        // Add /api prefix to all paths to match MapGroup("api") routing
+        var originalPaths = document.Paths.ToList();
+        document.Paths.Clear();
+        foreach (var path in originalPaths)
+        {
+            document.Paths.Add("/api" + path.Key, path.Value);
+        }
+
         return Task.CompletedTask;
     });
 });
@@ -67,6 +77,12 @@ if (app.Environment.IsDevelopment())
         options.DefaultHttpClient = new(ScalarTarget.CSharp, ScalarClient.HttpClient);
         options.OpenApiRoutePattern = "/openapi/v1.json";
     });
+
+    // Seed Database
+    using (var scope = app.Services.CreateScope())
+    {
+        await DbSeeder.SeedAsync(scope.ServiceProvider);
+    }
 }
 
 app.UseHttpsRedirection();

@@ -3,7 +3,8 @@ using Clinic.Infrastructure.Entities.Enums;
 namespace Booking.Patient.Contracts;
 
 public record CreateBookingRequest(
-    int DoctorScheduleId
+    string DoctorId,
+    DateOnly Date
 );
 
 public record BookingResponse(

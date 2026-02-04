@@ -4,6 +4,7 @@ using Clinic.Authentication.Strategies;
 using Clinic.Infrastructure.Entities;
 using Clinic.Infrastructure.Entities.Enums;
 using Clinic.Infrastructure.Persistence;
+using Clinic.Infrastructure.Services;
 
 namespace Clinic.Authentication.Services;
 
@@ -14,11 +15,13 @@ public class AuthService(
     UserManager<ApplicationUser> userManager,
     AppDbContext context,
     IJwtProvider jwtProvider,
+    IOtpService otpService,
     IEnumerable<ILoginStrategy> loginStrategies) : IAuthService
 {
     private readonly UserManager<ApplicationUser> _userManager = userManager;
     private readonly AppDbContext _context = context;
     private readonly IJwtProvider _jwtProvider = jwtProvider;
+    private readonly IOtpService _otpService = otpService;
     private readonly IEnumerable<ILoginStrategy> _loginStrategies = loginStrategies;
 
     public async Task<AuthResult> LoginAsync(LoginRequest request, CancellationToken cancellationToken = default)
@@ -61,5 +64,27 @@ public class AuthService(
         var refreshToken = _jwtProvider.GenerateRefreshToken();
 
         return AuthResult.Success(token, refreshToken, expiresAt, patientStatus, doctorStatus);
+    }
+
+    public async Task<Result> SendLoginOtpAsync(string email, CancellationToken cancellationToken = default)
+    {
+        var user = await _userManager.FindByEmailAsync(email);
+        if (user == null)
+            return Result.Failure(UserErrors.UserNotFound);
+
+        // Require verified email or phone before allowing OTP login
+        if (!user.EmailConfirmed && !user.PhoneNumberConfirmed)
+            return Result.Failure(Error.Failure("Auth.NotVerified", "Please verify your email or phone first"));
+
+        // Generate and store OTP for login context
+        await _otpService.GenerateAndStoreAsync(
+            OtpContext.Login,
+            OtpIdentifierType.Email,
+            email,
+            cancellationToken);
+
+        // TODO: Send OTP via email service
+
+        return Result.Succeed();
     }
 }
