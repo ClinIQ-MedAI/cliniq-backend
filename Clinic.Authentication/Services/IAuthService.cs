@@ -1,4 +1,5 @@
 using Clinic.Authentication.Contracts;
+using Clinic.Infrastructure.Abstractions;
 
 namespace Clinic.Authentication.Services;
 
@@ -10,7 +11,7 @@ public interface IAuthService
     /// <summary>
     /// Authenticates a user and returns JWT.
     /// </summary>
-    Task<AuthResult> LoginAsync(LoginRequest request, CancellationToken cancellationToken = default);
+    Task<Result<AuthTokenResponse>> LoginAsync(LoginRequest request, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Sends OTP code to email for login.

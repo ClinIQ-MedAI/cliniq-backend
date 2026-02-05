@@ -36,8 +36,8 @@ public class AuthController(
     {
         var result = await _registrationService.RegisterAsync(request, cancellationToken);
 
-        return result.IsSucceed ? 
-        Ok(new { Message = _localizer["RegistrationSuccess"].Value }) : 
+        return result.IsSucceed ?
+        Ok(new { Message = _localizer["RegistrationSuccess"].Value }) :
         result.ToProblem();
     }
 
@@ -51,15 +51,15 @@ public class AuthController(
     {
         var result = await _authService.LoginAsync(request, cancellationToken);
 
-        return result.IsSuccess ? 
+        return result.IsSucceed ?
         Ok(new
         {
-            Token = result.Token,
-            RefreshToken = result.RefreshToken,
-            ExpiresAt = result.ExpiresAt,
-            PatientStatus = result.PatientStatus?.ToString(),
-            DoctorStatus = result.DoctorStatus?.ToString()
-        }) : 
+            Token = result.Value.Token,
+            RefreshToken = result.Value.RefreshToken,
+            ExpiresAt = result.Value.ExpiresAt,
+            PatientStatus = result.Value.PatientStatus.ToString(),
+            DoctorStatus = result.Value.DoctorStatus.ToString()
+        }) :
         result.ToProblem();
     }
 
@@ -71,8 +71,8 @@ public class AuthController(
     {
         var result = await _verificationService.VerifyEmailAsync(request, cancellationToken);
 
-        return result.IsSucceed ? 
-        Ok(new { Message = _localizer["EmailVerifiedSuccess"].Value }) : 
+        return result.IsSucceed ?
+        Ok(new { Message = _localizer["EmailVerifiedSuccess"].Value }) :
         result.ToProblem();
     }
 
@@ -84,8 +84,8 @@ public class AuthController(
     {
         var result = await _verificationService.VerifyPhoneAsync(request, cancellationToken);
 
-        return result.IsSucceed ? 
-        Ok(new { Message = _localizer["PhoneVerifiedSuccess"].Value }) : 
+        return result.IsSucceed ?
+        Ok(new { Message = _localizer["PhoneVerifiedSuccess"].Value }) :
         result.ToProblem();
     }
 
@@ -97,8 +97,8 @@ public class AuthController(
     {
         var result = await _verificationService.SendEmailOtpAsync(request.Email, cancellationToken);
 
-        return result.IsSucceed ? 
-        Ok(new { Message = _localizer["OtpSentToEmail"].Value }) : 
+        return result.IsSucceed ?
+        Ok(new { Message = _localizer["OtpSentToEmail"].Value }) :
         result.ToProblem();
     }
 
@@ -110,8 +110,8 @@ public class AuthController(
     {
         var result = await _verificationService.SendPhoneOtpAsync(request.Phone, cancellationToken);
 
-        return result.IsSucceed ? 
-        Ok(new { Message = _localizer["OtpSentToPhone"].Value }) : 
+        return result.IsSucceed ?
+        Ok(new { Message = _localizer["OtpSentToPhone"].Value }) :
         result.ToProblem();
     }
 
@@ -123,8 +123,8 @@ public class AuthController(
     {
         var result = await _passwordService.ForgotPasswordAsync(request, cancellationToken);
 
-        return result.IsSucceed ? 
-        Ok(new { Message = _localizer["ForgotPasswordSent"].Value }) : 
+        return result.IsSucceed ?
+        Ok(new { Message = _localizer["ForgotPasswordSent"].Value }) :
         result.ToProblem();
     }
 
@@ -136,8 +136,8 @@ public class AuthController(
     {
         var result = await _passwordService.ResetPasswordAsync(request, cancellationToken);
 
-        return result.IsSucceed ? 
-        Ok(new { Message = _localizer["PasswordResetSuccess"].Value }) : 
+        return result.IsSucceed ?
+        Ok(new { Message = _localizer["PasswordResetSuccess"].Value }) :
         result.ToProblem();
     }
 
@@ -149,8 +149,8 @@ public class AuthController(
     {
         var result = await _authService.SendLoginOtpAsync(request.Email, cancellationToken);
 
-        return result.IsSucceed ? 
-        Ok(new { Message = _localizer["LoginOtpSent"].Value }) : 
+        return result.IsSucceed ?
+        Ok(new { Message = _localizer["LoginOtpSent"].Value }) :
         result.ToProblem();
     }
 }

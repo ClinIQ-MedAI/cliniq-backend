@@ -25,6 +25,9 @@
     <ProjectReference Include="..\Booking.Management\Booking.Management.csproj" />
     <ProjectReference Include="..\Booking.Doctor\Booking.Doctor.csproj" />
     <ProjectReference Include="..\Booking.Patient\Booking.Patient.csproj" />
+    <ProjectReference Include="..\Chat.Doctor\Chat.Doctor.csproj" />
+    <ProjectReference Include="..\Chat.Patient\Chat.Patient.csproj" />
+    <ProjectReference Include="..\Chat.Management\Chat.Management.csproj" />
   </ItemGroup>
 
 </Project>

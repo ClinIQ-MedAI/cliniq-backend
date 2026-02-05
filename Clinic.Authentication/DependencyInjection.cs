@@ -78,6 +78,10 @@ public static class DependencyInjection
             // Pending doctor
             options.AddPolicy(PolicyNames.PendingDoctor, policy =>
                 policy.AddRequirements(new DoctorStatusRequirement(DoctorStatus.PENDING_VERIFICATION.ToString())));
+
+            // Admin role required
+            options.AddPolicy(PolicyNames.Admin, policy =>
+                policy.RequireRole("Admin"));
         });
 
         // Register authorization handlers

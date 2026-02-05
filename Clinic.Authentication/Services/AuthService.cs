@@ -1,6 +1,7 @@
 using Clinic.Authentication.Contracts;
 using Clinic.Authentication.Jwt;
 using Clinic.Authentication.Strategies;
+using Clinic.Infrastructure.Abstractions;
 using Clinic.Infrastructure.Entities;
 using Clinic.Infrastructure.Entities.Enums;
 using Clinic.Infrastructure.Persistence;
@@ -28,26 +29,26 @@ public class AuthService(
     private readonly IEnumerable<ILoginStrategy> _loginStrategies = loginStrategies;
     private readonly IStringLocalizer<Messages> _localizer = localizer;
 
-    public async Task<AuthResult> LoginAsync(LoginRequest request, CancellationToken cancellationToken = default)
+    public async Task<Result<AuthTokenResponse>> LoginAsync(LoginRequest request, CancellationToken cancellationToken = default)
     {
         // Find user by email
         var user = await _userManager.FindByEmailAsync(request.Email);
         if (user == null)
-            return AuthResult.Failure(_localizer["InvalidCredentials"]);
+            return Result.Failure<AuthTokenResponse>(Error.BadRequest("Auth.InvalidCredentials", _localizer["InvalidCredentials"]));
 
         // Check if user is verified
         if (!user.EmailConfirmed && !user.PhoneNumberConfirmed)
-            return AuthResult.Failure(_localizer["NotVerified"]);
+            return Result.Failure<AuthTokenResponse>(Error.BadRequest("Auth.NotVerified", _localizer["NotVerified"]));
 
         // Select appropriate login strategy
         ILoginStrategy? strategy = _loginStrategies.FirstOrDefault(s => s.CanHandle(request));
         if (strategy == null)
-            return AuthResult.Failure(_localizer["InvalidLoginRequest"]);
+            return Result.Failure<AuthTokenResponse>(Error.BadRequest("Auth.InvalidLoginRequest", _localizer["InvalidLoginRequest"]));
 
         // Validate credentials using strategy
         var isValid = await strategy.ValidateAsync(user, request, cancellationToken);
         if (!isValid)
-            return AuthResult.Failure(_localizer["InvalidCredentials"]);
+            return Result.Failure<AuthTokenResponse>(Error.BadRequest("Auth.InvalidCredentials", _localizer["InvalidCredentials"]));
 
         // Load profile statuses
         var patientProfile = await _context.PatientProfiles
@@ -67,7 +68,7 @@ public class AuthService(
         var (token, expiresAt) = await _jwtProvider.GenerateTokenAsync(user, patientStatus, doctorStatus);
         var refreshToken = _jwtProvider.GenerateRefreshToken();
 
-        return AuthResult.Success(token, refreshToken, expiresAt, patientStatus, doctorStatus);
+        return Result.Succeed(new AuthTokenResponse(token, refreshToken, expiresAt, patientStatus, doctorStatus));
     }
 
     public async Task<Result> SendLoginOtpAsync(string email, CancellationToken cancellationToken = default)

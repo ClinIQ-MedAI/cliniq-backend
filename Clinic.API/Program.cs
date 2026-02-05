@@ -9,8 +9,12 @@ using Doctor.Management;
 using Booking.Management;
 using Booking.Doctor;
 using Booking.Patient;
+using Chat.Doctor;
+using Chat.Patient;
+using Chat.Management;
 using Serilog;
 using Scalar.AspNetCore;
+using Clinic.Infrastructure.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,7 +27,10 @@ builder.Services.AddControllers()
     .AddApplicationPart(typeof(Doctor.Management.DependencyInjection).Assembly)
     .AddApplicationPart(typeof(Booking.Management.DependencyInjection).Assembly)
     .AddApplicationPart(typeof(Booking.Doctor.DependencyInjection).Assembly)
-    .AddApplicationPart(typeof(Booking.Patient.DependencyInjection).Assembly);
+    .AddApplicationPart(typeof(Booking.Patient.DependencyInjection).Assembly)
+    .AddApplicationPart(typeof(Chat.Doctor.DependencyInjection).Assembly)
+    .AddApplicationPart(typeof(Chat.Patient.DependencyInjection).Assembly)
+    .AddApplicationPart(typeof(Chat.Management.DependencyInjection).Assembly);
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApi("v1", options =>
@@ -59,6 +66,12 @@ builder.Services.AddDoctorManagementModule();
 builder.Services.AddBookingManagementModule();
 builder.Services.AddBookingDoctorModule();
 builder.Services.AddBookingPatientModule();
+builder.Services.AddChatDoctorModule();
+builder.Services.AddChatPatientModule();
+builder.Services.AddChatManagementModule();
+
+// SignalR
+builder.Services.AddSignalR();
 
 // Logging
 builder.Host.UseSerilog((context, configuration) =>
@@ -101,5 +114,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapGroup("api").MapControllers();
+app.MapHub<ChatHub>("/hubs/chat");
 
 app.Run();

@@ -34,4 +34,9 @@ public static class PolicyNames
     /// Requires doctor_status to be PENDING_VERIFICATION.
     /// </summary>
     public const string PendingDoctor = "PendingDoctor";
+
+    /// <summary>
+    /// Requires Admin role.
+    /// </summary>
+    public const string Admin = "Admin";
 }
