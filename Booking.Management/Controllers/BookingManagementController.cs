@@ -8,7 +8,7 @@ namespace Booking.Management.Controllers;
 
 [ApiController]
 [Route("admin/bookings")]
-[Authorize(Roles = "Admin")] // Assuming Admin role exists or policy
+[Authorize(Roles = "Admin")]
 public class BookingManagementController : ControllerBase
 {
     private readonly AppDbContext _dbContext;

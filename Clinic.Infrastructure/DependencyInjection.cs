@@ -50,6 +50,8 @@ public static class DependencyInjection
 
         services.AddScoped<INotificationService, NotificationService>();
 
+        services.AddLocalization();
+
         return services;
     }
 

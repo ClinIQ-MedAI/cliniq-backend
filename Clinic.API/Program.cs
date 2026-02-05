@@ -1,4 +1,5 @@
 using Clinic.Infrastructure;
+using Clinic.Infrastructure.Localization;
 using Clinic.Infrastructure.Persistence;
 using Clinic.Authentication;
 using Patient.Profile;
@@ -86,6 +87,13 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseRequestLocalization(options =>
+{
+    options.SetDefaultCulture(SharedResource.SupportedCultures[0])
+        .AddSupportedCultures(SharedResource.SupportedCultures)
+        .AddSupportedUICultures(SharedResource.SupportedCultures);
+});
 
 app.UseInfrastructure(); // Custom pipeline from Infrastructure
 

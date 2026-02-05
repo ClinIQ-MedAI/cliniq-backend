@@ -15,7 +15,7 @@ public class VerificationService(
     {
         var user = await _userManager.FindByEmailAsync(email);
         if (user == null)
-            return Result.Failure(Error.Failure("User.NotFound", "User not found"));
+            return Result.Failure(Error.BadRequest("User.NotFound", "User not found"));
 
         if (user.EmailConfirmed)
             return Result.Failure(Error.Conflict("User.AlreadyVerified", "Email already verified"));
@@ -36,7 +36,7 @@ public class VerificationService(
     {
         var user = _userManager.Users.FirstOrDefault(u => u.PhoneNumber == phone);
         if (user == null)
-            return Result.Failure(Error.Failure("User.NotFound", "User not found"));
+            return Result.Failure(Error.BadRequest("User.NotFound", "User not found"));
 
         if (user.PhoneNumberConfirmed)
             return Result.Failure(Error.Conflict("User.AlreadyVerified", "Phone already verified"));
@@ -57,7 +57,7 @@ public class VerificationService(
     {
         var user = await _userManager.FindByEmailAsync(request.Email);
         if (user == null)
-            return Result.Failure(Error.Failure("User.NotFound", "User not found"));
+            return Result.Failure(Error.BadRequest("User.NotFound", "User not found"));
 
         if (user.EmailConfirmed)
             return Result.Failure(Error.Conflict("User.AlreadyVerified", "Email already verified"));
@@ -85,7 +85,7 @@ public class VerificationService(
     {
         var user = _userManager.Users.FirstOrDefault(u => u.PhoneNumber == request.Phone);
         if (user == null)
-            return Result.Failure(Error.Failure("User.NotFound", "User not found"));
+            return Result.Failure(Error.BadRequest("User.NotFound", "User not found"));
 
         if (user.PhoneNumberConfirmed)
             return Result.Failure(Error.Conflict("User.AlreadyVerified", "Phone already verified"));

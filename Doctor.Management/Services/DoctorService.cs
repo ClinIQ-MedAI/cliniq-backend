@@ -3,15 +3,19 @@ using Clinic.Infrastructure.Entities;
 using Clinic.Infrastructure.Entities.Enums;
 using Clinic.Infrastructure.Persistence;
 using Mapster;
+using Doctor.Management.Localization;
+using Microsoft.Extensions.Localization;
 
 namespace Doctor.Management.Services;
 
 public class DoctorService(
     UserManager<ApplicationUser> userManager,
-    AppDbContext context) : IDoctorService
+    AppDbContext context,
+    IStringLocalizer<Messages> localizer) : IDoctorService
 {
     private readonly UserManager<ApplicationUser> _userManager = userManager;
     private readonly AppDbContext _context = context;
+    private readonly IStringLocalizer<Messages> _localizer = localizer;
 
     public async Task<IEnumerable<DoctorResponse>> GetAllAsync(CancellationToken cancellationToken = default)
     {
@@ -39,7 +43,7 @@ public class DoctorService(
             .FirstOrDefaultAsync(dp => dp.Id == id);
 
         if (doctorProfile == null)
-            return Result.Failure<DoctorResponse>(Error.Failure("Doctor.NotFound", "Doctor profile not found"));
+            return Result.Failure<DoctorResponse>(Error.BadRequest("Doctor.NotFound", _localizer["DoctorNotFound"]));
 
         var response = new DoctorResponse(
             doctorProfile.Id,
@@ -56,7 +60,7 @@ public class DoctorService(
     public async Task<Result<DoctorResponse>> AddAsync(CreateDoctorRequest request, CancellationToken cancellationToken = default)
     {
         if (await _userManager.FindByEmailAsync(request.Email) is not null)
-            return Result.Failure<DoctorResponse>(Error.Failure("User.DuplicateEmail", "Email already exists"));
+            return Result.Failure<DoctorResponse>(Error.BadRequest("User.DuplicateEmail", _localizer["DuplicateEmail"]));
 
         var user = request.Adapt<ApplicationUser>();
         user.UserName = request.Email;
@@ -99,7 +103,7 @@ public class DoctorService(
             .FirstOrDefaultAsync(dp => dp.Id == id, cancellationToken);
 
         if (doctorProfile == null)
-            return Result.Failure(Error.Failure("Doctor.NotFound", "Doctor profile not found"));
+            return Result.Failure(Error.BadRequest("Doctor.NotFound", _localizer["DoctorNotFound"]));
 
         var user = doctorProfile.User;
 
@@ -108,7 +112,7 @@ public class DoctorService(
         {
             var userWithEmail = await _userManager.FindByEmailAsync(request.Email);
             if (userWithEmail != null && userWithEmail.Id != id)
-                return Result.Failure(Error.Failure("User.DuplicateEmail", "Email already exists"));
+                return Result.Failure(Error.BadRequest("User.DuplicateEmail", _localizer["DuplicateEmail"]));
 
             user.Email = request.Email;
             user.UserName = request.Email;
@@ -150,20 +154,20 @@ public class DoctorService(
             .FirstOrDefaultAsync(dp => dp.Id == id);
 
         if (doctorProfile == null)
-            return Result.Failure(Error.Failure("Doctor.NotFound", "Doctor profile not found"));
+            return Result.Failure(Error.BadRequest("Doctor.NotFound", _localizer["DoctorNotFound"]));
 
         // Only allow toggling between ACTIVE and SUSPENDED
         if (active)
         {
             if (doctorProfile.Status != DoctorStatus.SUSPENDED)
-                return Result.Failure(Error.Failure("Doctor.InvalidStatus", "Can only reactivate a suspended doctor"));
+                return Result.Failure(Error.BadRequest("Doctor.InvalidStatus", _localizer["InvalidStatusReactivate"]));
 
             doctorProfile.Status = DoctorStatus.ACTIVE;
         }
         else
         {
             if (doctorProfile.Status != DoctorStatus.ACTIVE)
-                return Result.Failure(Error.Failure("Doctor.InvalidStatus", "Can only suspend an active doctor"));
+                return Result.Failure(Error.BadRequest("Doctor.InvalidStatus", _localizer["InvalidStatusSuspend"]));
 
             doctorProfile.Status = DoctorStatus.SUSPENDED;
         }
@@ -175,7 +179,7 @@ public class DoctorService(
     public async Task<Result> Unlock(string id)
     {
         if (await _userManager.FindByIdAsync(id) is not { } user)
-            return Result.Failure(Error.Failure("User.NotFound", "User not found"));
+            return Result.Failure(Error.BadRequest("User.NotFound", _localizer["UserNotFound"]));
 
         var result = await _userManager.SetLockoutEndDateAsync(user, null);
 
@@ -188,10 +192,10 @@ public class DoctorService(
     {
         var doctorProfile = await _context.DoctorProfiles.FirstOrDefaultAsync(dp => dp.Id == id);
         if (doctorProfile == null)
-            return Result.Failure(Error.Failure("Doctor.NotFound", "Doctor profile not found"));
+            return Result.Failure(Error.BadRequest("Doctor.NotFound", _localizer["DoctorNotFound"]));
 
         if (doctorProfile.Status != DoctorStatus.PENDING_VERIFICATION)
-            return Result.Failure(Error.Failure("Doctor.InvalidStatus", "Can only accept a pending doctor"));
+            return Result.Failure(Error.BadRequest("Doctor.InvalidStatus", _localizer["InvalidStatusApprove"]));
 
         doctorProfile.Status = DoctorStatus.ACTIVE;
         doctorProfile.RejectionReason = null;
@@ -204,10 +208,10 @@ public class DoctorService(
     {
         var doctorProfile = await _context.DoctorProfiles.FirstOrDefaultAsync(dp => dp.Id == id);
         if (doctorProfile == null)
-            return Result.Failure(Error.Failure("Doctor.NotFound", "Doctor profile not found"));
+            return Result.Failure(Error.BadRequest("Doctor.NotFound", _localizer["DoctorNotFound"]));
 
         if (doctorProfile.Status != DoctorStatus.PENDING_VERIFICATION)
-            return Result.Failure(Error.Failure("Doctor.InvalidStatus", "Can only reject a pending doctor"));
+            return Result.Failure(Error.BadRequest("Doctor.InvalidStatus", _localizer["InvalidStatusReject"]));
 
         doctorProfile.Status = DoctorStatus.REJECTED;
         doctorProfile.RejectionReason = reason;

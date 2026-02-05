@@ -2,6 +2,8 @@ using Clinic.Infrastructure.Contracts.Patients;
 using Clinic.Infrastructure.Entities;
 using Clinic.Infrastructure.Entities.Enums;
 using Clinic.Infrastructure.Persistence;
+using Patient.Profile.Localization;
+using Microsoft.Extensions.Localization;
 
 namespace Patient.Profile.Services;
 
@@ -12,10 +14,12 @@ namespace Patient.Profile.Services;
 /// </summary>
 public class PatientRegistrationService(
     UserManager<ApplicationUser> userManager,
-    AppDbContext context)
+    AppDbContext context,
+    IStringLocalizer<Messages> localizer)
 {
     private readonly UserManager<ApplicationUser> _userManager = userManager;
     private readonly AppDbContext _context = context;
+    private readonly IStringLocalizer<Messages> _localizer = localizer;
 
     /// <summary>
     /// Creates PatientProfile from survey submission.
@@ -27,12 +31,12 @@ public class PatientRegistrationService(
 
         // Check if user is verified
         if (!user!.EmailConfirmed && !user.PhoneNumberConfirmed)
-            return Result.Failure(new Error("User.NotVerified", "Please verify email or phone before submitting survey", StatusCodes.Status403Forbidden));
+            return Result.Failure(new Error("User.NotVerified", _localizer["UserNotVerified"], StatusCodes.Status403Forbidden));
 
         // Check if patient profile already exists
         var existingProfile = await _context.PatientProfiles.FindAsync([userId], cancellationToken);
         if (existingProfile is not null)
-            return Result.Failure(new Error("Patient.ProfileExists", "Patient profile already exists", StatusCodes.Status409Conflict));
+            return Result.Failure(new Error("Patient.ProfileExists", _localizer["ProfileExists"], StatusCodes.Status409Conflict));
 
         // Create PatientProfile with Shared PK
         var patientProfile = new PatientProfile

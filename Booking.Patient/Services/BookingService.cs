@@ -2,6 +2,8 @@ using Booking.Patient.Contracts;
 using Clinic.Infrastructure.Entities;
 using Clinic.Infrastructure.Entities.Enums;
 using Clinic.Infrastructure.Persistence;
+using Booking.Patient.Localization;
+using Microsoft.Extensions.Localization;
 
 namespace Booking.Patient.Services;
 
@@ -10,10 +12,14 @@ public class BookingService : IBookingService
     private readonly AppDbContext _dbContext;
     private readonly int UpcomingPeriodDays = 7;
 
-    public BookingService(AppDbContext dbContext)
+    public BookingService(AppDbContext dbContext,
+        IStringLocalizer<Messages> localizer)
     {
         _dbContext = dbContext;
+        _localizer = localizer;
     }
+
+    private readonly IStringLocalizer<Messages> _localizer;
 
     public async Task<Result<int>> BookAppointmentAsync(string patientId, string doctorId, DateOnly date, CancellationToken cancellationToken = default)
     {
@@ -25,7 +31,7 @@ public class BookingService : IBookingService
             .FirstOrDefaultAsync(da => da.DoctorId == doctorId && da.DayOfWeek == dayOfWeek, cancellationToken);
 
         if (availability == null || !availability.IsAvailable)
-            return Result.Failure<int>(BookingErrors.DoctorUnavailable);
+            return Result.Failure<int>(Error.Conflict("Booking.DoctorUnavailable", _localizer["DoctorUnavailable"]));
 
         if (schedule == null)
         {
@@ -42,11 +48,11 @@ public class BookingService : IBookingService
         else
         {
             if (!schedule.IsAvailable)
-                return Result.Failure<int>(BookingErrors.ScheduleUnavailable);
+                return Result.Failure<int>(Error.Conflict("Booking.ScheduleUnavailable", _localizer["ScheduleUnavailable"]));
         }
 
         if (schedule.BookingCount >= availability.MaxBookings)
-            return Result.Failure<int>(BookingErrors.BookingLimitExceeded);
+            return Result.Failure<int>(Error.Conflict("Booking.BookingLimitExceeded", _localizer["BookingLimitExceeded"]));
 
         var booking = new Clinic.Infrastructure.Entities.Booking
         {
@@ -109,7 +115,7 @@ public class BookingService : IBookingService
             .FirstOrDefaultAsync(d => d.Id == doctorId, cancellationToken);
 
         if (doctor is null)
-            return Result.Failure<BookingScreenViewModel>(Error.NotFound("Doctor.NotFound", "Doctor not found"));
+            return Result.Failure<BookingScreenViewModel>(Error.NotFound("Doctor.NotFound", _localizer["DoctorNotFound"]));
 
         // 2. Map Availability (Working Hours)
         var availabilities = doctor.AvailabilityDays.Where(a => a.IsAvailable).ToList();

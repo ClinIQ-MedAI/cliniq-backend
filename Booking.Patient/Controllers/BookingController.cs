@@ -45,9 +45,24 @@ public class BookingController : ControllerBase
         var bookings = await _bookingService.GetMyBookingsAsync(userId!, cancellationToken);
 
         return Ok(bookings);
+    }    
+
+    [HttpGet("doctors")]
+    public async Task<IActionResult> GetAvailableDoctors([FromQuery] DateOnly date, CancellationToken cancellationToken)
+    {
+        var result = await _bookingService.GetAvailableDoctorsAsync(date, cancellationToken);
+        return Ok(result.Value);
     }
 
-    [HttpGet("doctor-details/{doctorId}")]
+    [HttpGet("doctors/{doctorId}/schedules")]
+    public async Task<IActionResult> GetDoctorSchedules(string doctorId, CancellationToken cancellationToken)
+    {
+        var schedules = await _bookingService.GetDoctorSchedulesAsync(doctorId, cancellationToken);
+
+        return Ok(schedules);
+    }
+
+    [HttpGet("doctors/{doctorId}")]
     public async Task<IActionResult> GetBookingScreenDetails(string doctorId, CancellationToken cancellationToken)
     {
         var result = await _bookingService.GetBookingScreenDetailsAsync(doctorId, cancellationToken);
@@ -62,32 +77,5 @@ public class BookingController : ControllerBase
         }
 
         return Ok(result.Value);
-    }
-
-    [HttpGet("doctors")]
-    public async Task<IActionResult> GetAvailableDoctors([FromQuery] DateOnly date, CancellationToken cancellationToken)
-    {
-        var result = await _bookingService.GetAvailableDoctorsAsync(date, cancellationToken);
-        return Ok(result.Value);
-    }
-}
-
-[ApiController]
-[Route("doctors")]
-public class DoctorLookupController : ControllerBase
-{
-    private readonly IBookingService _bookingService;
-
-    public DoctorLookupController(IBookingService bookingService)
-    {
-        _bookingService = bookingService;
-    }
-
-    [HttpGet("{doctorId}/schedules")]
-    public async Task<IActionResult> GetDoctorSchedules(string doctorId, CancellationToken cancellationToken)
-    {
-        var schedules = await _bookingService.GetDoctorSchedulesAsync(doctorId, cancellationToken);
-
-        return Ok(schedules);
     }
 }

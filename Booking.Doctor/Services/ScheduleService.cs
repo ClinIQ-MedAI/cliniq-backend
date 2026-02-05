@@ -1,7 +1,6 @@
 using Booking.Doctor.Contracts;
 using Clinic.Infrastructure.Entities;
 using Clinic.Infrastructure.Persistence;
-using Microsoft.EntityFrameworkCore;
 
 namespace Booking.Doctor.Services;
 
@@ -14,7 +13,7 @@ public class ScheduleService : IScheduleService
         _dbContext = dbContext;
     }
 
-    public async Task SetAvailabilityAsync(string doctorId, SetAvailabilityRequest request, CancellationToken cancellationToken = default)
+    public async Task<Result> SetAvailabilityAsync(string doctorId, SetAvailabilityRequest request, CancellationToken cancellationToken = default)
     {
         var existingAvailabilities = await _dbContext.DoctorAvailabilities
             .Where(da => da.DoctorId == doctorId)
@@ -36,9 +35,12 @@ public class ScheduleService : IScheduleService
         }
 
         await _dbContext.SaveChangesAsync(cancellationToken);
+
+
+        return Result.Succeed();
     }
 
-    public async Task GenerateSchedulesAsync(string doctorId, DateOnly startDate, DateOnly endDate, CancellationToken cancellationToken = default)
+    public async Task<Result> GenerateSchedulesAsync(string doctorId, DateOnly startDate, DateOnly endDate, CancellationToken cancellationToken = default)
     {
         var availabilities = await _dbContext.DoctorAvailabilities
             .Where(da => da.DoctorId == doctorId && da.IsAvailable)
@@ -72,9 +74,11 @@ public class ScheduleService : IScheduleService
             _dbContext.DoctorSchedules.AddRange(schedulesToAdd);
             await _dbContext.SaveChangesAsync(cancellationToken);
         }
+
+        return Result.Succeed();
     }
 
-    public async Task<List<DoctorSchedule>> GetSchedulesAsync(string doctorId, DateOnly? from, DateOnly? to, CancellationToken cancellationToken = default)
+    public async Task<Result<List<DoctorSchedule>>> GetSchedulesAsync(string doctorId, DateOnly? from, DateOnly? to, CancellationToken cancellationToken = default)
     {
         var query = _dbContext.DoctorSchedules.AsQueryable();
 
@@ -86,6 +90,8 @@ public class ScheduleService : IScheduleService
         if (to.HasValue)
             query = query.Where(ds => ds.Date <= to.Value);
 
-        return await query.OrderBy(ds => ds.Date).ToListAsync(cancellationToken);
+        var schedules = await query.OrderBy(ds => ds.Date).ToListAsync(cancellationToken);
+
+        return Result.Succeed(schedules);
     }
 }

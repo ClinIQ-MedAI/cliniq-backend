@@ -2,7 +2,7 @@ namespace Doctor.Profile.Controllers;
 
 [Route("doctor/me")]
 [ApiController]
-[Authorize]
+[Authorize(Policy = PolicyNames.ActiveDoctor)]
 public class ProfileController(IUserService userService) : ControllerBase
 {
     private readonly IUserService _userService = userService;

@@ -1,4 +1,6 @@
 using Clinic.Infrastructure.Contracts.Patients;
+using Patient.Profile.Localization;
+using Microsoft.Extensions.Localization;
 
 namespace Patient.Profile.Controllers;
 
@@ -10,10 +12,12 @@ namespace Patient.Profile.Controllers;
 [Route("patient/[controller]")]
 [ApiController]
 public class SurveyController(
-    PatientRegistrationService registrationService
+    PatientRegistrationService registrationService,
+    IStringLocalizer<Messages> localizer
     ) : ControllerBase
 {
     private readonly PatientRegistrationService _registrationService = registrationService;
+    private readonly IStringLocalizer<Messages> _localizer = localizer;
 
     /// <summary>
     /// Submit patient survey to create PatientProfile.
@@ -29,7 +33,7 @@ public class SurveyController(
         var result = await _registrationService.SubmitSurveyAsync(userId, request, cancellationToken);
 
         return result.IsSucceed ?
-            Ok(new { Message = "Patient profile created successfully." }) :
+            Ok(new { Message = _localizer["SurveyCreated"].Value }) :
             result.ToProblem();
     }
 }

@@ -5,6 +5,8 @@ using Clinic.Infrastructure.Entities;
 using Clinic.Infrastructure.Entities.Enums;
 using Clinic.Infrastructure.Persistence;
 using Clinic.Infrastructure.Services;
+using Microsoft.Extensions.Localization;
+using Clinic.Authentication.Localization;
 
 namespace Clinic.Authentication.Services;
 
@@ -16,34 +18,36 @@ public class AuthService(
     AppDbContext context,
     IJwtProvider jwtProvider,
     IOtpService otpService,
-    IEnumerable<ILoginStrategy> loginStrategies) : IAuthService
+    IEnumerable<ILoginStrategy> loginStrategies,
+    IStringLocalizer<Messages> localizer) : IAuthService
 {
     private readonly UserManager<ApplicationUser> _userManager = userManager;
     private readonly AppDbContext _context = context;
     private readonly IJwtProvider _jwtProvider = jwtProvider;
     private readonly IOtpService _otpService = otpService;
     private readonly IEnumerable<ILoginStrategy> _loginStrategies = loginStrategies;
+    private readonly IStringLocalizer<Messages> _localizer = localizer;
 
     public async Task<AuthResult> LoginAsync(LoginRequest request, CancellationToken cancellationToken = default)
     {
         // Find user by email
         var user = await _userManager.FindByEmailAsync(request.Email);
         if (user == null)
-            return AuthResult.Failure("Invalid email or password");
+            return AuthResult.Failure(_localizer["InvalidCredentials"]);
 
         // Check if user is verified
         if (!user.EmailConfirmed && !user.PhoneNumberConfirmed)
-            return AuthResult.Failure("Please verify your email or phone before logging in");
+            return AuthResult.Failure(_localizer["NotVerified"]);
 
         // Select appropriate login strategy
         ILoginStrategy? strategy = _loginStrategies.FirstOrDefault(s => s.CanHandle(request));
         if (strategy == null)
-            return AuthResult.Failure("Invalid login request - provide password or OTP");
+            return AuthResult.Failure(_localizer["InvalidLoginRequest"]);
 
         // Validate credentials using strategy
         var isValid = await strategy.ValidateAsync(user, request, cancellationToken);
         if (!isValid)
-            return AuthResult.Failure("Invalid credentials");
+            return AuthResult.Failure(_localizer["InvalidCredentials"]);
 
         // Load profile statuses
         var patientProfile = await _context.PatientProfiles
@@ -70,11 +74,11 @@ public class AuthService(
     {
         var user = await _userManager.FindByEmailAsync(email);
         if (user == null)
-            return Result.Failure(UserErrors.UserNotFound);
+            return Result.Failure(Error.NotFound("User.NotFound", _localizer["UserNotFound"]));
 
         // Require verified email or phone before allowing OTP login
         if (!user.EmailConfirmed && !user.PhoneNumberConfirmed)
-            return Result.Failure(Error.Failure("Auth.NotVerified", "Please verify your email or phone first"));
+            return Result.Failure(Error.BadRequest("Auth.NotVerified", _localizer["NotVerified"]));
 
         // Generate and store OTP for login context
         await _otpService.GenerateAndStoreAsync(

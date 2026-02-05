@@ -2,15 +2,19 @@ using Clinic.Infrastructure.Contracts.Patients;
 using Clinic.Infrastructure.Entities;
 using Clinic.Infrastructure.Entities.Enums;
 using Clinic.Infrastructure.Persistence;
+using Patient.Management.Localization;
+using Microsoft.Extensions.Localization;
 
 namespace Patient.Management.Services;
 
 public class PatientService(
     UserManager<ApplicationUser> userManager,
-    AppDbContext context) : IPatientService
+    AppDbContext context,
+    IStringLocalizer<Messages> localizer) : IPatientService
 {
     private readonly UserManager<ApplicationUser> _userManager = userManager;
     private readonly AppDbContext _context = context;
+    private readonly IStringLocalizer<Messages> _localizer = localizer;
 
     public async Task<IEnumerable<PatientResponse>> GetAllAsync(CancellationToken cancellationToken = default)
     {
@@ -38,7 +42,7 @@ public class PatientService(
             .FirstOrDefaultAsync(pp => pp.Id == id);
 
         if (patientProfile == null)
-            return Result.Failure<PatientResponse>(Error.Failure("Patient.NotFound", "Patient profile not found"));
+            return Result.Failure<PatientResponse>(Error.BadRequest("Patient.NotFound", _localizer["PatientNotFound"]));
 
         var response = new PatientResponse(
             patientProfile.Id,
@@ -55,7 +59,7 @@ public class PatientService(
     public async Task<Result<PatientResponse>> AddAsync(CreatePatientRequest request, CancellationToken cancellationToken = default)
     {
         if (await _userManager.FindByEmailAsync(request.Email) is not null)
-            return Result.Failure<PatientResponse>(Error.Failure("User.DuplicateEmail", "Email already exists"));
+            return Result.Failure<PatientResponse>(Error.BadRequest("User.DuplicateEmail", _localizer["DuplicateEmail"]));
 
         var user = new ApplicationUser
         {
@@ -101,7 +105,7 @@ public class PatientService(
             .FirstOrDefaultAsync(pp => pp.Id == id, cancellationToken);
 
         if (patientProfile == null)
-            return Result.Failure(Error.Failure("Patient.NotFound", "Patient profile not found"));
+            return Result.Failure(Error.BadRequest("Patient.NotFound", _localizer["PatientNotFound"]));
 
         var user = patientProfile.User;
 
@@ -110,7 +114,7 @@ public class PatientService(
         {
             var userWithEmail = await _userManager.FindByEmailAsync(request.Email);
             if (userWithEmail != null && userWithEmail.Id != id)
-                return Result.Failure(Error.Failure("User.DuplicateEmail", "Email already exists"));
+                return Result.Failure(Error.BadRequest("User.DuplicateEmail", _localizer["DuplicateEmail"]));
 
             user.Email = request.Email;
             user.UserName = request.Email;
@@ -144,20 +148,20 @@ public class PatientService(
             .FirstOrDefaultAsync(pp => pp.Id == id);
 
         if (patientProfile == null)
-            return Result.Failure(Error.Failure("Patient.NotFound", "Patient profile not found"));
+            return Result.Failure(Error.BadRequest("Patient.NotFound", _localizer["PatientNotFound"]));
 
         // Only allow toggling between ACTIVE and SUSPENDED
         if (active)
         {
             if (patientProfile.Status != PatientStatus.SUSPENDED)
-                return Result.Failure(Error.Failure("Patient.InvalidStatus", "Can only reactivate a suspended patient"));
+                return Result.Failure(Error.BadRequest("Patient.InvalidStatus", _localizer["InvalidStatusReactivate"]));
 
             patientProfile.Status = PatientStatus.ACTIVE;
         }
         else
         {
             if (patientProfile.Status != PatientStatus.ACTIVE)
-                return Result.Failure(Error.Failure("Patient.InvalidStatus", "Can only suspend an active patient"));
+                return Result.Failure(Error.BadRequest("Patient.InvalidStatus", _localizer["InvalidStatusSuspend"]));
 
             patientProfile.Status = PatientStatus.SUSPENDED;
         }
@@ -169,7 +173,7 @@ public class PatientService(
     public async Task<Result> Unlock(string id)
     {
         if (await _userManager.FindByIdAsync(id) is not { } user)
-            return Result.Failure(Error.Failure("User.NotFound", "User not found"));
+            return Result.Failure(Error.BadRequest("User.NotFound", _localizer["UserNotFound"]));
 
         var result = await _userManager.SetLockoutEndDateAsync(user, null);
 

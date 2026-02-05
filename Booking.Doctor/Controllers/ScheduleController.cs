@@ -1,14 +1,12 @@
 using Booking.Doctor.Contracts;
 using Booking.Doctor.Services;
-using Clinic.Infrastructure.Extensions;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+using Clinic.Authentication.Authorization;
 
 namespace Booking.Doctor.Controllers;
 
 [ApiController]
 [Route("schedules")]
-[Authorize]
+[Authorize(Policy = PolicyNames.ActiveDoctor)]
 public class ScheduleController : ControllerBase
 {
     private readonly IScheduleService _scheduleService;
@@ -22,10 +20,10 @@ public class ScheduleController : ControllerBase
     public async Task<IActionResult> SetAvailability([FromBody] SetAvailabilityRequest request, CancellationToken cancellationToken)
     {
         var doctorId = User.GetUserId();
-        if (string.IsNullOrEmpty(doctorId)) return Unauthorized();
 
-        await _scheduleService.SetAvailabilityAsync(doctorId, request, cancellationToken);
-        return Ok();
+        var result = await _scheduleService.SetAvailabilityAsync(doctorId!, request, cancellationToken);
+
+        return result.IsSucceed ? Ok() : result.ToProblem();
     }
 
     [HttpPost("generate")]
@@ -35,10 +33,10 @@ public class ScheduleController : ControllerBase
         CancellationToken cancellationToken)
     {
         var doctorId = User.GetUserId();
-        if (string.IsNullOrEmpty(doctorId)) return Unauthorized();
 
-        await _scheduleService.GenerateSchedulesAsync(doctorId, startDate, endDate, cancellationToken);
-        return Ok();
+        var result = await _scheduleService.GenerateSchedulesAsync(doctorId!, startDate, endDate, cancellationToken);
+
+        return result.IsSucceed ? Ok() : result.ToProblem();
     }
 
     [HttpGet]
@@ -48,9 +46,9 @@ public class ScheduleController : ControllerBase
         CancellationToken cancellationToken)
     {
         var doctorId = User.GetUserId();
-        if (string.IsNullOrEmpty(doctorId)) return Unauthorized();
 
-        var schedules = await _scheduleService.GetSchedulesAsync(doctorId, from, to, cancellationToken);
-        return Ok(schedules);
+        var result = await _scheduleService.GetSchedulesAsync(doctorId!, from, to, cancellationToken);
+
+        return result.IsSucceed ? Ok(result.Value) : result.ToProblem();
     }
 }

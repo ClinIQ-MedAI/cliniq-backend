@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="UserNotFound" xml:space="preserve">
+    <value>المستخدم غير موجود</value>
+  </data>
+  <data name="InvalidCredentials" xml:space="preserve">
+    <value>البريد الإلكتروني أو كلمة المرور غير صحيحة</value>
+  </data>
+  <data name="NotVerified" xml:space="preserve">
+    <value>يرجى تأكيد البريد الإلكتروني أو رقم الهاتف قبل تسجيل الدخول</value>
+  </data>
+  <data name="InvalidLoginRequest" xml:space="preserve">
+    <value>طلب تسجيل دخول غير صالح - يرجى تقديم كلمة المرور أو رمز التحقق</value>
+  </data>
+  <data name="RegistrationSuccess" xml:space="preserve">
+    <value>تم التسجيل بنجاح. يرجى تأكيد البريد الإلكتروني أو رقم الهاتف للمتابعة.</value>
+  </data>
+  <data name="EmailVerifiedSuccess" xml:space="preserve">
+    <value>تم تأكيد البريد الإلكتروني بنجاح. يمكنك الآن تسجيل الدخول.</value>
+  </data>
+  <data name="PhoneVerifiedSuccess" xml:space="preserve">
+    <value>تم تأكيد رقم الهاتف بنجاح. يمكنك الآن تسجيل الدخول.</value>
+  </data>
+  <data name="OtpSentToEmail" xml:space="preserve">
+    <value>تم إرسال رمز التحقق إلى البريد الإلكتروني.</value>
+  </data>
+  <data name="OtpSentToPhone" xml:space="preserve">
+    <value>تم إرسال رمز التحقق إلى الهاتف.</value>
+  </data>
+  <data name="ForgotPasswordSent" xml:space="preserve">
+    <value>إذا كان البريد الإلكتروني موجودًا، فقد تم إرسال رابط إعادة تعيين كلمة المرور.</value>
+  </data>
+  <data name="PasswordResetSuccess" xml:space="preserve">
+    <value>تم إعادة تعيين كلمة المرور بنجاح.</value>
+  </data>
+  <data name="LoginOtpSent" xml:space="preserve">
+    <value>تم إرسال رمز التحقق إلى البريد الإلكتروني لتسجيل الدخول.</value>
+  </data>
+</root>

@@ -1,4 +1,6 @@
 using Clinic.Infrastructure.Contracts.Doctors;
+using Doctor.Profile.Localization;
+using Microsoft.Extensions.Localization;
 
 namespace Doctor.Profile.Controllers;
 
@@ -10,10 +12,12 @@ namespace Doctor.Profile.Controllers;
 [Route("doctor/[controller]")]
 [ApiController]
 public class SurveyController(
-    DoctorRegistrationService registrationService
+    DoctorRegistrationService registrationService,
+    IStringLocalizer<Messages> localizer
     ) : ControllerBase
 {
     private readonly DoctorRegistrationService _registrationService = registrationService;
+    private readonly IStringLocalizer<Messages> _localizer = localizer;
 
     /// <summary>
     /// Submit doctor survey to create DoctorProfile.
@@ -29,7 +33,7 @@ public class SurveyController(
         var result = await _registrationService.SubmitSurveyAsync(userId, request, cancellationToken);
 
         return result.IsSucceed ?
-            Ok(new { Message = "Doctor profile created. Awaiting verification by admin." }) :
+            Ok(new { Message = _localizer["SurveyCreated"].Value }) :
             result.ToProblem();
     }
 }

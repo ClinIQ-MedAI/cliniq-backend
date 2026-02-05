@@ -1,5 +1,7 @@
 using Clinic.Authentication.Contracts;
 using Clinic.Authentication.Services;
+using Clinic.Authentication.Localization;
+using Microsoft.Extensions.Localization;
 using Clinic.Infrastructure.Extensions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -16,12 +18,14 @@ public class AuthController(
     IRegistrationService registrationService,
     IAuthService authService,
     IVerificationService verificationService,
-    IPasswordService passwordService) : ControllerBase
+    IPasswordService passwordService,
+    IStringLocalizer<Messages> localizer) : ControllerBase
 {
     private readonly IRegistrationService _registrationService = registrationService;
     private readonly IAuthService _authService = authService;
     private readonly IVerificationService _verificationService = verificationService;
     private readonly IPasswordService _passwordService = passwordService;
+    private readonly IStringLocalizer<Messages> _localizer = localizer;
 
     /// <summary>
     /// Register a new user.
@@ -32,10 +36,9 @@ public class AuthController(
     {
         var result = await _registrationService.RegisterAsync(request, cancellationToken);
 
-        if (result.IsSucceed)
-            return Ok(new { Message = "Registration successful. Please verify your email or phone to proceed." });
-
-        return result.ToProblem();
+        return result.IsSucceed ? 
+        Ok(new { Message = _localizer["RegistrationSuccess"].Value }) : 
+        result.ToProblem();
     }
 
     /// <summary>
@@ -48,17 +51,16 @@ public class AuthController(
     {
         var result = await _authService.LoginAsync(request, cancellationToken);
 
-        if (!result.IsSuccess)
-            return Problem(detail: result.Error, statusCode: StatusCodes.Status401Unauthorized);
-
-        return Ok(new
+        return result.IsSuccess ? 
+        Ok(new
         {
             Token = result.Token,
             RefreshToken = result.RefreshToken,
             ExpiresAt = result.ExpiresAt,
             PatientStatus = result.PatientStatus?.ToString(),
             DoctorStatus = result.DoctorStatus?.ToString()
-        });
+        }) : 
+        result.ToProblem();
     }
 
     /// <summary>
@@ -69,10 +71,9 @@ public class AuthController(
     {
         var result = await _verificationService.VerifyEmailAsync(request, cancellationToken);
 
-        if (result.IsSucceed)
-            return Ok(new { Message = "Email verified successfully. You can now login." });
-
-        return result.ToProblem();
+        return result.IsSucceed ? 
+        Ok(new { Message = _localizer["EmailVerifiedSuccess"].Value }) : 
+        result.ToProblem();
     }
 
     /// <summary>
@@ -83,10 +84,9 @@ public class AuthController(
     {
         var result = await _verificationService.VerifyPhoneAsync(request, cancellationToken);
 
-        if (result.IsSucceed)
-            return Ok(new { Message = "Phone verified successfully. You can now login." });
-
-        return result.ToProblem();
+        return result.IsSucceed ? 
+        Ok(new { Message = _localizer["PhoneVerifiedSuccess"].Value }) : 
+        result.ToProblem();
     }
 
     /// <summary>
@@ -97,10 +97,9 @@ public class AuthController(
     {
         var result = await _verificationService.SendEmailOtpAsync(request.Email, cancellationToken);
 
-        if (result.IsSucceed)
-            return Ok(new { Message = "OTP sent to email." });
-
-        return result.ToProblem();
+        return result.IsSucceed ? 
+        Ok(new { Message = _localizer["OtpSentToEmail"].Value }) : 
+        result.ToProblem();
     }
 
     /// <summary>
@@ -111,10 +110,9 @@ public class AuthController(
     {
         var result = await _verificationService.SendPhoneOtpAsync(request.Phone, cancellationToken);
 
-        if (result.IsSucceed)
-            return Ok(new { Message = "OTP sent to phone." });
-
-        return result.ToProblem();
+        return result.IsSucceed ? 
+        Ok(new { Message = _localizer["OtpSentToPhone"].Value }) : 
+        result.ToProblem();
     }
 
     /// <summary>
@@ -125,8 +123,9 @@ public class AuthController(
     {
         var result = await _passwordService.ForgotPasswordAsync(request, cancellationToken);
 
-        // Always return success to not reveal user existence
-        return Ok(new { Message = "If the email exists, a password reset link has been sent." });
+        return result.IsSucceed ? 
+        Ok(new { Message = _localizer["ForgotPasswordSent"].Value }) : 
+        result.ToProblem();
     }
 
     /// <summary>
@@ -137,10 +136,9 @@ public class AuthController(
     {
         var result = await _passwordService.ResetPasswordAsync(request, cancellationToken);
 
-        if (result.IsSucceed)
-            return Ok(new { Message = "Password reset successfully." });
-
-        return result.ToProblem();
+        return result.IsSucceed ? 
+        Ok(new { Message = _localizer["PasswordResetSuccess"].Value }) : 
+        result.ToProblem();
     }
 
     /// <summary>
@@ -151,9 +149,8 @@ public class AuthController(
     {
         var result = await _authService.SendLoginOtpAsync(request.Email, cancellationToken);
 
-        if (result.IsSucceed)
-            return Ok(new { Message = "OTP sent to email for login." });
-
-        return result.ToProblem();
+        return result.IsSucceed ? 
+        Ok(new { Message = _localizer["LoginOtpSent"].Value }) : 
+        result.ToProblem();
     }
 }
