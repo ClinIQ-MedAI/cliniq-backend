@@ -14,7 +14,15 @@ public static class DependencyInjection
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddDbContext<AppDbContext>(options =>
-            options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
+            options.UseSqlServer(configuration.GetConnectionString("monsteraspDbConnection"), sqlServerOptions =>
+            {
+                sqlServerOptions.CommandTimeout(180); // Set timeout to 3 minutes
+                sqlServerOptions.EnableRetryOnFailure(
+                    maxRetryCount: 5,
+                    maxRetryDelay: TimeSpan.FromSeconds(30),
+                    errorNumbersToAdd: null
+                );
+            }));
 
         services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
         {

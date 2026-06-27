@@ -14,6 +14,9 @@ public static class DbSeeder
         var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
         var context = serviceProvider.GetRequiredService<AppDbContext>();
 
+        // Ensure database is created and migrations are applied
+        await context.Database.MigrateAsync();
+
         await SeedRolesAsync(roleManager);
         await SeedUsersAsync(userManager, context);
     }
