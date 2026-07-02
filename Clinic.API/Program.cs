@@ -15,6 +15,7 @@ using Chat.Management;
 using Serilog;
 using Scalar.AspNetCore;
 using Clinic.Infrastructure.Hubs;
+using System.Linq;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,6 +34,28 @@ builder.Services.AddControllers()
     .AddApplicationPart(typeof(Chat.Management.DependencyInjection).Assembly);
 
 builder.Services.AddEndpointsApiExplorer();
+
+// CORS configuration
+var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("ClinicCorsPolicy", policy =>
+    {
+        if (allowedOrigins != null && allowedOrigins.Length > 0 && !allowedOrigins.Contains("*"))
+        {
+            policy.WithOrigins(allowedOrigins)
+                  .AllowAnyMethod()
+                  .AllowAnyHeader()
+                  .AllowCredentials();
+        }
+        else
+        {
+            policy.AllowAnyOrigin()
+                  .AllowAnyMethod()
+                  .AllowAnyHeader();
+        }
+    });
+});
 builder.Services.AddOpenApi("v1", options =>
 {
     options.AddDocumentTransformer((document, context, cancellationToken) =>
@@ -109,6 +132,8 @@ app.UseRequestLocalization(options =>
 });
 
 app.UseInfrastructure(); // Custom pipeline from Infrastructure
+
+app.UseCors("ClinicCorsPolicy");
 
 app.UseAuthentication();
 app.UseAuthorization();
