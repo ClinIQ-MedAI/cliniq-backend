@@ -6,6 +6,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Clinic.Infrastructure.Services;
 using Clinic.Infrastructure.Settings;
 using Microsoft.AspNetCore.Identity.UI.Services;
+using Clinic.Infrastructure.Health;
+using Microsoft.Extensions.Caching.StackExchangeRedis;
+using Microsoft.Extensions.Logging;
+using StackExchange.Redis;
 
 namespace Clinic.Infrastructure;
 
@@ -42,11 +46,58 @@ public static class DependencyInjection
         // Note: Authentication services are now registered via Clinic.Authentication.AddAuthenticationModule()
         // Infrastructure only provides the core database and identity setup
 
-        // Redis Cache
-        services.AddStackExchangeRedisCache(options =>
+        // Redis Connection Multiplexer
+        services.AddSingleton<IConnectionMultiplexer>(sp =>
         {
-            options.Configuration = configuration.GetConnectionString("Redis");
+            var logger = sp.GetRequiredService<ILogger<ConnectionMultiplexer>>();
+            var connectionString = configuration.GetConnectionString("Redis");
+            
+            ConnectionMultiplexer multiplexer;
+            if (string.IsNullOrEmpty(connectionString))
+            {
+                logger.LogWarning("Redis connection string is missing or empty. Defaulting to localhost:6379");
+                multiplexer = ConnectionMultiplexer.Connect("localhost:6379");
+            }
+            else
+            {
+                var configurationOptions = ConfigurationOptions.Parse(connectionString);
+                logger.LogInformation("Establishing connection to Redis endpoint(s)...");
+                multiplexer = ConnectionMultiplexer.Connect(configurationOptions);
+                logger.LogInformation("Successfully connected to Redis.");
+            }
+
+            // Hook up events for connection logging
+            multiplexer.ConnectionFailed += (sender, e) =>
+            {
+                logger.LogError(e.Exception, "Redis connection failed. Endpoint: {Endpoint}, FailureType: {FailureType}", e.EndPoint, e.FailureType);
+            };
+
+            multiplexer.ConnectionRestored += (sender, e) =>
+            {
+                logger.LogInformation("Redis connection restored. Endpoint: {Endpoint}", e.EndPoint);
+            };
+
+            multiplexer.InternalError += (sender, e) =>
+            {
+                logger.LogError(e.Exception, "Redis internal error. Endpoint: {Endpoint}, Origin: {Origin}", e.EndPoint, e.Origin);
+            };
+
+            return multiplexer;
         });
+
+        // Redis Cache using the shared ConnectionMultiplexer
+        services.AddStackExchangeRedisCache(options => { });
+        services.AddOptions<RedisCacheOptions>()
+            .Configure<IServiceProvider>((options, sp) =>
+            {
+                options.ConnectionMultiplexerFactory = () => Task.FromResult(sp.GetRequiredService<IConnectionMultiplexer>());
+            });
+
+        // Health Checks
+        services.AddHealthChecks()
+            .AddCheck<MailProviderHealthCheck>("mail_provider")
+            .AddSqlServer(configuration.GetConnectionString("DefaultConnection") ?? string.Empty, name: "sql_server")
+            .AddCheck<RedisHealthCheck>("redis");
 
         // Application Services
         services.AddScoped<ICacheService, CacheService>();

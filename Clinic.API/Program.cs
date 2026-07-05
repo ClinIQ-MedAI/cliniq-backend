@@ -1,6 +1,9 @@
 using Clinic.Infrastructure;
 using Clinic.Infrastructure.Localization;
 using Clinic.Infrastructure.Persistence;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using HealthChecks.UI.Client;
+using StackExchange.Redis;
 using Clinic.Authentication;
 using Patient.Profile;
 using Doctor.Profile;
@@ -140,5 +143,49 @@ app.UseAuthorization();
 
 app.MapGroup("api").MapControllers();
 app.MapHub<ChatHub>("/hubs/chat");
+
+// Map Health Checks endpoint
+app.MapHealthChecks("/health", new HealthCheckOptions
+{
+    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+});
+
+// Verify startup connectivity to dependencies
+using (var scope = app.Services.CreateScope())
+{
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    logger.LogInformation("Verifying database and Redis connectivity on startup...");
+    
+    // Check DB Connection
+    try
+    {
+        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        if (await dbContext.Database.CanConnectAsync())
+        {
+            logger.LogInformation("Startup verification: Database connection established successfully.");
+        }
+        else
+        {
+            logger.LogWarning("Startup verification: Database connection could not be established.");
+        }
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Startup verification: Database connectivity check failed.");
+    }
+    
+    // Check Redis Connection
+    try
+    {
+        var redisMultiplexer = scope.ServiceProvider.GetRequiredService<IConnectionMultiplexer>();
+        var db = redisMultiplexer.GetDatabase();
+        var ping = await db.PingAsync();
+        logger.LogInformation("Startup verification: Redis connection established successfully. Ping time: {PingTime}ms", ping.TotalMilliseconds);
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Startup verification: Redis connectivity check failed.");
+    }
+}
 
 app.Run();
