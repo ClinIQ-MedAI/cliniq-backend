@@ -89,7 +89,7 @@ jobs:
           --self-contained false
 
       - name: Deploy to MonsterASP via WebDeploy
-        uses: rasmusbuchholdt/simply-web-deploy@v2
+        uses: rasmusbuchholdt/simply-web-deploy@2.1.0
         with:
           website-name: ${{ secrets.MONSTER_SITE_NAME }}
           server-computer-name: ${{ secrets.MONSTER_SERVER_URL }}
