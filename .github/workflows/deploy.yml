@@ -1,0 +1,98 @@
+name: Production CI/CD Pipeline
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: # Allow manual deployments from the Actions tab
+
+# Cancel any in-flight run for the same branch to avoid overlapping deployments.
+concurrency:
+  group: production-deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+# Principle of least privilege – this pipeline only needs to read code.
+permissions:
+  contents: read
+
+env:
+  DOTNET_VERSION: "10.0"
+  BUILD_CONFIGURATION: Release
+  PUBLISH_PROJECT: Clinic.API/Clinic.API.csproj
+  PUBLISH_OUTPUT: ./publish_output
+  PUBLISH_RUNTIME: win-x86
+
+# ──────────────────────────────────────────────────────────────
+#  JOBS
+# ──────────────────────────────────────────────────────────────
+jobs:
+  # ── CI: Build & Test ────────────────────────────────────────
+  build-and-test:
+    name: Build & Test
+    runs-on: windows-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Cache NuGet Packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj', '**/Directory.Build.props') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      - name: Restore Dependencies
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --configuration ${{ env.BUILD_CONFIGURATION }} --no-restore
+
+      - name: Run Tests
+        run: dotnet test --configuration ${{ env.BUILD_CONFIGURATION }} --no-build --verbosity normal
+
+  # ── CD: Publish & Deploy ────────────────────────────────────
+  deploy:
+    name: Deploy to Production
+    needs: build-and-test
+    runs-on: windows-latest
+    timeout-minutes: 10
+    environment: production # GitHub Environment for deployment protection rules
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Cache NuGet Packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj', '**/Directory.Build.props') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      - name: Publish Application
+        run: >-
+          dotnet publish ${{ env.PUBLISH_PROJECT }}
+          --configuration ${{ env.BUILD_CONFIGURATION }}
+          --runtime ${{ env.PUBLISH_RUNTIME }}
+          --output ${{ env.PUBLISH_OUTPUT }}
+          --self-contained false
+
+      - name: Deploy to MonsterASP via WebDeploy
+        uses: rasmusbuchholdt/simply-web-deploy@v2
+        with:
+          website-name: ${{ secrets.MONSTER_SITE_NAME }}
+          server-computer-name: ${{ secrets.MONSTER_SERVER_URL }}
+          server-username: ${{ secrets.MONSTER_USERNAME }}
+          server-password: ${{ secrets.MONSTER_PASSWORD }}
+          source-path: ${{ env.PUBLISH_OUTPUT }}
