@@ -18,7 +18,7 @@ env:
   DOTNET_VERSION: "10.0"
   BUILD_CONFIGURATION: Release
   PUBLISH_PROJECT: Clinic.API/Clinic.API.csproj
-  PUBLISH_OUTPUT: ${{ github.workspace }}/publish_output
+  PUBLISH_OUTPUT: publish_output
   PUBLISH_RUNTIME: win-x86
 
 # ──────────────────────────────────────────────────────────────
@@ -85,7 +85,7 @@ jobs:
           dotnet publish ${{ env.PUBLISH_PROJECT }}
           --configuration ${{ env.BUILD_CONFIGURATION }}
           --runtime ${{ env.PUBLISH_RUNTIME }}
-          --output ${{ env.PUBLISH_OUTPUT }}
+          --output ${{ github.workspace }}/${{ env.PUBLISH_OUTPUT }}
           --self-contained false
 
       - name: Deploy to MonsterASP via WebDeploy
