@@ -52,19 +52,20 @@ public static class DependencyInjection
             var logger = sp.GetRequiredService<ILogger<ConnectionMultiplexer>>();
             var connectionString = configuration.GetConnectionString("Redis");
             
-            ConnectionMultiplexer multiplexer;
             if (string.IsNullOrEmpty(connectionString))
             {
                 logger.LogWarning("Redis connection string is missing or empty. Defaulting to localhost:6379");
-                multiplexer = ConnectionMultiplexer.Connect("localhost:6379");
+                connectionString = "localhost:6379";
             }
-            else
-            {
-                var configurationOptions = ConfigurationOptions.Parse(connectionString);
-                logger.LogInformation("Establishing connection to Redis endpoint(s)...");
-                multiplexer = ConnectionMultiplexer.Connect(configurationOptions);
-                logger.LogInformation("Successfully connected to Redis.");
-            }
+
+            var configurationOptions = ConfigurationOptions.Parse(connectionString);
+
+            // Prevent Connect from throwing if Redis is down at startup, allowing background retries
+            configurationOptions.AbortOnConnectFail = false;
+
+            logger.LogInformation("Establishing connection to Redis endpoint(s)...");
+            var multiplexer = ConnectionMultiplexer.Connect(configurationOptions);
+            logger.LogInformation("Successfully created Redis multiplexer connection. Monitoring state in background.");
 
             // Hook up events for connection logging
             multiplexer.ConnectionFailed += (sender, e) =>
