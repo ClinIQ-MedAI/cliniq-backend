@@ -14,7 +14,6 @@ public interface IJwtProvider
     (string Token, int ExpiresIn) GenerateToken(
         ApplicationUser user,
         IEnumerable<string> roles,
-        IEnumerable<string> permissions,
         PatientStatus patientStatus,
         DoctorStatus doctorStatus);
 

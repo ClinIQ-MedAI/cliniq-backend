@@ -17,7 +17,6 @@ public class JwtProvider(
     public (string Token, int ExpiresIn) GenerateToken(
         ApplicationUser user,
         IEnumerable<string> roles,
-        IEnumerable<string> permissions,
         PatientStatus patientStatus,
         DoctorStatus doctorStatus)
     {
@@ -29,7 +28,6 @@ public class JwtProvider(
             new(JwtRegisteredClaimNames.FamilyName, user.LastName),
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new(nameof(roles), JsonSerializer.Serialize(roles), JsonClaimValueTypes.JsonArray),
-            new(nameof(permissions), JsonSerializer.Serialize(permissions), JsonClaimValueTypes.JsonArray),
             // Verification claims
             new("email_confirmed", user.EmailConfirmed.ToString().ToLower()),
             new("phone_number_confirmed", user.PhoneNumberConfirmed.ToString().ToLower()),
@@ -60,12 +58,10 @@ public class JwtProvider(
         DoctorStatus doctorStatus)
     {
         var roles = await _userManager.GetRolesAsync(user);
-        var permissions = new List<string>(); // Extend to load permissions from roles if needed
 
         var (token, expiresIn) = GenerateToken(
             user,
             roles,
-            permissions,
             patientStatus,
             doctorStatus);
         var expiresAt = DateTime.UtcNow.AddSeconds(expiresIn);

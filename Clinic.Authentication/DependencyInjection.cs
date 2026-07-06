@@ -42,7 +42,8 @@ public static class DependencyInjection
                 ValidIssuer = jwtOptions.Issuer,
                 ValidAudience = jwtOptions.Audience,
                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Key)),
-                ClockSkew = TimeSpan.Zero
+                ClockSkew = TimeSpan.Zero,
+                RoleClaimType = "roles"
             };
         });
 
@@ -88,6 +89,13 @@ public static class DependencyInjection
         services.AddScoped<IAuthorizationHandler, VerificationRequirementHandler>();
         services.AddScoped<IAuthorizationHandler, PatientStatusRequirementHandler>();
         services.AddScoped<IAuthorizationHandler, DoctorStatusRequirementHandler>();
+        services.AddScoped<IAuthorizationHandler, PermissionHandler>();
+
+        // Dynamic policy provider for permission-based authorization
+        services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
+
+        // Register permission service
+        services.AddScoped<IPermissionService, PermissionService>();
 
         // Register JWT provider
         services.AddScoped<IJwtProvider, JwtProvider>();
@@ -102,6 +110,9 @@ public static class DependencyInjection
 
         services.AddScoped<IPasswordService, PasswordService>();
         services.AddScoped<IAuthService, AuthService>();
+
+        // Register role service
+        services.AddScoped<IRoleService, RoleService>();
 
         return services;
     }

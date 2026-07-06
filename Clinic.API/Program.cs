@@ -19,6 +19,8 @@ using Serilog;
 using Scalar.AspNetCore;
 using Clinic.Infrastructure.Hubs;
 using System.Linq;
+using Microsoft.OpenApi;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -65,6 +67,24 @@ builder.Services.AddOpenApi("v1", options =>
     {
         document.Info.Title = "Clinic API";
         document.Info.Version = "v1";
+
+        // Add Bearer JWT security scheme
+        document.Components ??= new OpenApiComponents();
+        document.Components.SecuritySchemes["Bearer"] = new OpenApiSecurityScheme
+        {
+            Type = SecuritySchemeType.Http,
+            Scheme = "bearer",
+            BearerFormat = "JWT",
+            Description = "Enter your JWT Bearer token"
+        };
+
+        document.Security = new List<OpenApiSecurityRequirement>
+        {
+            new()
+            {
+                [new OpenApiSecuritySchemeReference("Bearer", document, null)] = []
+            }
+        };
 
         // Add /api prefix to all paths to match MapGroup("api") routing
         var originalPaths = document.Paths.ToList();
@@ -114,8 +134,11 @@ if (app.Environment.IsDevelopment())
         options.Title = "Clinic API";
         options.Theme = ScalarTheme.Mars;
         options.ShowSidebar = true;
-        options.DefaultHttpClient = new(ScalarTarget.CSharp, ScalarClient.HttpClient);
         options.OpenApiRoutePattern = "/openapi/v1.json";
+        options.Authentication = new ScalarAuthenticationOptions
+        {
+            PreferredSecurityScheme = "Bearer"
+        };
     });
 
     // Seed Database

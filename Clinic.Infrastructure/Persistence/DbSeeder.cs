@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Clinic.Infrastructure.Entities;
 using Clinic.Infrastructure.Entities.Enums;
 using Microsoft.AspNetCore.Identity;
@@ -23,14 +24,46 @@ public static class DbSeeder
 
     private static async Task SeedRolesAsync(RoleManager<ApplicationRole> roleManager)
     {
-        string[] roles = ["SuperAdmin", "Admin"];
-
-        foreach (var role in roles)
+        var superAdminRole = await roleManager.FindByNameAsync("SuperAdmin");
+        if (superAdminRole == null)
         {
-            if (!await roleManager.RoleExistsAsync(role))
+            superAdminRole = new ApplicationRole
             {
-                await roleManager.CreateAsync(new ApplicationRole { Name = role });
-            }
+                Name = "SuperAdmin",
+                IsDefault = true,
+                Permissions = JsonSerializer.Serialize(new[]
+                {
+                    "Permissions.Patients.View",
+                    "Permissions.Patients.Create",
+                    "Permissions.Patients.Update",
+                    "Permissions.Patients.Delete",
+                    "Permissions.Doctors.View",
+                    "Permissions.Doctors.Create",
+                    "Permissions.Doctors.Update",
+                    "Permissions.Doctors.Delete",
+                })
+            };
+            await roleManager.CreateAsync(superAdminRole);
+        }
+
+        var adminRole = await roleManager.FindByNameAsync("Admin");
+        if (adminRole == null)
+        {
+            adminRole = new ApplicationRole
+            {
+                Name = "Admin",
+                IsDefault = true,
+                Permissions = JsonSerializer.Serialize(new[]
+                {
+                    "Permissions.Patients.View",
+                    "Permissions.Patients.Create",
+                    "Permissions.Patients.Update",
+                    "Permissions.Doctors.View",
+                    "Permissions.Doctors.Create",
+                    "Permissions.Doctors.Update",
+                })
+            };
+            await roleManager.CreateAsync(adminRole);
         }
     }
 
@@ -68,9 +101,14 @@ public static class DbSeeder
         string password,
         string? role = null)
     {
-        if (await userManager.FindByEmailAsync(email) != null)
+        var existingUser = await userManager.FindByEmailAsync(email);
+        if (existingUser != null)
         {
-            return await userManager.FindByEmailAsync(email);
+            if (role is not null && !await userManager.IsInRoleAsync(existingUser, role))
+            {
+                await userManager.AddToRoleAsync(existingUser, role);
+            }
+            return existingUser;
         }
 
         var names = name.Split(' ', 2);
