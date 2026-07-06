@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Clinic.Infrastructure.Entities;
 using Clinic.Infrastructure.Services;
 
@@ -45,7 +46,7 @@ public class PermissionService(
     private static List<string> GetRoles(ClaimsPrincipal user)
     {
         return user.Claims
-            .Where(c => c.Type == "roles")
+            .Where(c => c.Type == ClaimTypes.Role)
             .Select(c => c.Value)
             .ToList();
     }
