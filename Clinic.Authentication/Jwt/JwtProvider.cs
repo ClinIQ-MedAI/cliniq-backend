@@ -1,4 +1,3 @@
-using System.Text.Json;
 using Clinic.Infrastructure.Entities;
 using Clinic.Infrastructure.Entities.Enums;
 
@@ -27,7 +26,6 @@ public class JwtProvider(
             new(JwtRegisteredClaimNames.GivenName, user.FirstName),
             new(JwtRegisteredClaimNames.FamilyName, user.LastName),
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            new(nameof(roles), JsonSerializer.Serialize(roles), JsonClaimValueTypes.JsonArray),
             // Verification claims
             new("email_confirmed", user.EmailConfirmed.ToString().ToLower()),
             new("phone_number_confirmed", user.PhoneNumberConfirmed.ToString().ToLower()),
@@ -35,6 +33,9 @@ public class JwtProvider(
             new("patient_status", patientStatus.ToString()),
             new("doctor_status", doctorStatus.ToString())
         };
+
+        foreach (var role in roles)
+            claims.Add(new Claim("roles", role));
 
         var symmetricSecurityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.Key));
         var signingCredentials = new SigningCredentials(symmetricSecurityKey, SecurityAlgorithms.HmacSha256);
