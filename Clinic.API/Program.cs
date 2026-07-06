@@ -70,6 +70,7 @@ builder.Services.AddOpenApi("v1", options =>
 
         // Add Bearer JWT security scheme
         document.Components ??= new OpenApiComponents();
+        document.Components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>();
         document.Components.SecuritySchemes["Bearer"] = new OpenApiSecurityScheme
         {
             Type = SecuritySchemeType.Http,
