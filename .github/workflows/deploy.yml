@@ -16,7 +16,7 @@ permissions:
 
 env:
   DOTNET_VERSION: "10.0"
-  BUILD_CONFIGURATION: Release
+  BUILD_CONFIGURATION:
   PUBLISH_PROJECT: Clinic.API/Clinic.API.csproj
   PUBLISH_OUTPUT: publish_output
   PUBLISH_RUNTIME: win-x86
