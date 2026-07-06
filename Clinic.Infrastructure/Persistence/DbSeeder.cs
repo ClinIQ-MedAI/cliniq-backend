@@ -1,4 +1,4 @@
-using System.Text.Json;
+using System.Security.Claims;
 using Clinic.Infrastructure.Entities;
 using Clinic.Infrastructure.Entities.Enums;
 using Microsoft.AspNetCore.Identity;
@@ -18,17 +18,22 @@ public static class DbSeeder
         // Ensure database is created and migrations are applied
         await context.Database.MigrateAsync();
 
-        await SeedRolesAsync(roleManager);
+        await SeedRolesAsync(roleManager, context);
         await SeedUsersAsync(userManager, context);
     }
 
-    private static async Task SeedRolesAsync(RoleManager<ApplicationRole> roleManager)
+    private static async Task SeedRolesAsync(RoleManager<ApplicationRole> roleManager, AppDbContext context)
     {
-        var superAdminRole = await roleManager.FindByNameAsync("SuperAdmin")
-            ?? new ApplicationRole { Name = "SuperAdmin" };
+        // Fix any null concurrency stamps in AspNetRoles and AspNetUsers
+        // This prevents DbUpdateConcurrencyException in SQL Server when updating rows with null ConcurrencyStamps
+        await context.Database.ExecuteSqlRawAsync(
+            "UPDATE AspNetRoles SET ConcurrencyStamp = NEWID() WHERE ConcurrencyStamp IS NULL");
+        await context.Database.ExecuteSqlRawAsync(
+            "UPDATE AspNetUsers SET ConcurrencyStamp = NEWID() WHERE ConcurrencyStamp IS NULL");
 
-        superAdminRole.IsDefault = true;
-        superAdminRole.Permissions = JsonSerializer.Serialize(new[]
+        context.ChangeTracker.Clear(); // Clear the tracker to ensure we work with clean state after raw SQL updates
+
+        var superAdminPermissions = new[]
         {
             "Permissions.Patients.View",
             "Permissions.Patients.Create",
@@ -42,18 +47,9 @@ public static class DbSeeder
             "Permissions.Roles.Create",
             "Permissions.Roles.Update",
             "Permissions.Roles.Delete",
-        });
+        };
 
-        if (superAdminRole.Id is null)
-            await roleManager.CreateAsync(superAdminRole);
-        else
-            await roleManager.UpdateAsync(superAdminRole);
-
-        var adminRole = await roleManager.FindByNameAsync("Admin")
-            ?? new ApplicationRole { Name = "Admin" };
-
-        adminRole.IsDefault = true;
-        adminRole.Permissions = JsonSerializer.Serialize(new[]
+        var adminPermissions = new[]
         {
             "Permissions.Patients.View",
             "Permissions.Patients.Create",
@@ -64,12 +60,72 @@ public static class DbSeeder
             "Permissions.Roles.View",
             "Permissions.Roles.Create",
             "Permissions.Roles.Update",
-        });
+        };
 
-        if (adminRole.Id is null)
-            await roleManager.CreateAsync(adminRole);
+        await EnsureRoleWithPermissionsAsync(roleManager, context, "SuperAdmin", superAdminPermissions, isDefault: true);
+        await EnsureRoleWithPermissionsAsync(roleManager, context, "Admin", adminPermissions, isDefault: true);
+
+        context.ChangeTracker.Clear(); // Clear the tracker to detach roles before user seeding runs
+    }
+
+    private static async Task EnsureRoleWithPermissionsAsync(
+        RoleManager<ApplicationRole> roleManager,
+        AppDbContext context,
+        string roleName,
+        string[] desiredPermissions,
+        bool isDefault)
+    {
+        var role = await roleManager.FindByNameAsync(roleName);
+        bool isNew = role is null;
+
+        if (isNew)
+        {
+            role = new ApplicationRole { Name = roleName, IsDefault = isDefault };
+            var result = await roleManager.CreateAsync(role);
+            if (!result.Succeeded)
+            {
+                var errors = string.Join(", ", result.Errors.Select(e => $"{e.Code}: {e.Description}"));
+                throw new InvalidOperationException($"Failed to create role '{roleName}': {errors}");
+            }
+
+            foreach (var permission in desiredPermissions)
+                await roleManager.AddClaimAsync(role, new Claim("permission", permission));
+        }
         else
-            await roleManager.UpdateAsync(adminRole);
+        {
+            bool needsRoleUpdate = role!.IsDefault != isDefault;
+
+            var existingClaimValues = await context.Set<IdentityRoleClaim<string>>()
+                .Where(rc => rc.RoleId == role.Id && rc.ClaimType == "permission")
+                .Select(rc => rc.ClaimValue!)
+                .ToListAsync();
+
+            bool permissionsMatch = desiredPermissions.ToHashSet().SetEquals(existingClaimValues);
+
+            if (needsRoleUpdate || !permissionsMatch)
+            {
+                if (needsRoleUpdate)
+                {
+                    role.IsDefault = isDefault;
+                    var result = await roleManager.UpdateAsync(role);
+                    if (!result.Succeeded)
+                    {
+                        var errors = string.Join(", ", result.Errors.Select(e => $"{e.Code}: {e.Description}"));
+                        throw new InvalidOperationException($"Failed to update role '{roleName}': {errors}");
+                    }
+                }
+
+                if (!permissionsMatch)
+                {
+                    await context.Set<IdentityRoleClaim<string>>()
+                        .Where(rc => rc.RoleId == role.Id && rc.ClaimType == "permission")
+                        .ExecuteDeleteAsync();
+
+                    foreach (var permission in desiredPermissions)
+                        await roleManager.AddClaimAsync(role, new Claim("permission", permission));
+                }
+            }
+        }
     }
 
     private static async Task SeedUsersAsync(UserManager<ApplicationUser> userManager, AppDbContext context)

@@ -1,4 +1,3 @@
-using System.Text.Json;
 using Clinic.Authentication.Authorization;
 using Clinic.Authentication.Contracts.Roles;
 using Clinic.Infrastructure.Abstractions;
@@ -16,7 +15,16 @@ public class RoleService(
             .Where(r => !r.IsDeleted)
             .ToListAsync(cancellationToken);
 
-        var response = roles.Select(MapToResponse).ToList();
+        var response = new List<RoleResponse>();
+        foreach (var role in roles)
+        {
+            var permissions = (await roleManager.GetClaimsAsync(role))
+                .Where(c => c.Type == "permission")
+                .Select(c => c.Value)
+                .ToArray();
+            response.Add(MapToResponse(role, permissions));
+        }
+
         return Result.Succeed(response);
     }
 
@@ -26,7 +34,12 @@ public class RoleService(
         if (role == null || role.IsDeleted)
             return Result.Failure<RoleResponse>(Error.NotFound("Role.NotFound", "Role not found"));
 
-        return Result.Succeed(MapToResponse(role));
+        var permissions = (await roleManager.GetClaimsAsync(role))
+            .Where(c => c.Type == "permission")
+            .Select(c => c.Value)
+            .ToArray();
+
+        return Result.Succeed(MapToResponse(role, permissions));
     }
 
     public async Task<Result<RoleResponse>> CreateAsync(CreateRoleRequest request)
@@ -34,18 +47,18 @@ public class RoleService(
         if (await roleManager.RoleExistsAsync(request.Name))
             return Result.Failure<RoleResponse>(Error.Conflict("Role.AlreadyExists", "Role already exists"));
 
-        var role = new ApplicationRole
-        {
-            Name = request.Name,
-            Permissions = JsonSerializer.Serialize(request.Permissions ?? [])
-        };
+        var role = new ApplicationRole { Name = request.Name };
 
         var result = await roleManager.CreateAsync(role);
         if (!result.Succeeded)
             return Result.Failure<RoleResponse>(Error.BadRequest("Role.CreateFailed",
                 string.Join(", ", result.Errors.Select(e => e.Description))));
 
-        return Result.Succeed(MapToResponse(role));
+        foreach (var permission in request.Permissions ?? [])
+            await roleManager.AddClaimAsync(role, new Claim("permission", permission));
+
+        var permissions = request.Permissions ?? [];
+        return Result.Succeed(MapToResponse(role, permissions));
     }
 
     public async Task<Result<RoleResponse>> UpdateAsync(string id, UpdateRoleRequest request)
@@ -64,7 +77,13 @@ public class RoleService(
 
         if (request.Permissions is not null)
         {
-            role.Permissions = JsonSerializer.Serialize(request.Permissions);
+            var existingClaims = await roleManager.GetClaimsAsync(role);
+            foreach (var claim in existingClaims.Where(c => c.Type == "permission"))
+                await roleManager.RemoveClaimAsync(role, claim);
+
+            foreach (var permission in request.Permissions)
+                await roleManager.AddClaimAsync(role, new Claim("permission", permission));
+
             await permissionService.InvalidateRoleCacheAsync(role.Id!);
         }
 
@@ -73,7 +92,12 @@ public class RoleService(
             return Result.Failure<RoleResponse>(Error.BadRequest("Role.UpdateFailed",
                 string.Join(", ", result.Errors.Select(e => e.Description))));
 
-        return Result.Succeed(MapToResponse(role));
+        var permissions = request.Permissions ?? (await roleManager.GetClaimsAsync(role))
+            .Where(c => c.Type == "permission")
+            .Select(c => c.Value)
+            .ToArray();
+
+        return Result.Succeed(MapToResponse(role, permissions));
     }
 
     public async Task<Result> DeleteAsync(string id)
@@ -95,18 +119,11 @@ public class RoleService(
         return Result.Succeed();
     }
 
-    private static RoleResponse MapToResponse(ApplicationRole role) => new(
+    private static RoleResponse MapToResponse(ApplicationRole role, string[] permissions) => new(
         role.Id!,
         role.Name!,
         role.IsDefault,
         role.IsDeleted,
-        DeserializePermissions(role.Permissions)
+        permissions
     );
-
-    private static string[] DeserializePermissions(string? permissionsJson)
-    {
-        if (string.IsNullOrWhiteSpace(permissionsJson)) return [];
-        try { return JsonSerializer.Deserialize<string[]>(permissionsJson) ?? []; }
-        catch { return []; }
-    }
 }

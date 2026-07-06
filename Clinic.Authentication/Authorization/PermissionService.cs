@@ -1,4 +1,3 @@
-using System.Text.Json;
 using Clinic.Infrastructure.Entities;
 using Clinic.Infrastructure.Services;
 
@@ -64,24 +63,13 @@ public class PermissionService(
         if (permissions is not null)
             return permissions;
 
-        permissions = DeserializePermissions(role.Permissions);
+        permissions = (await roleManager.GetClaimsAsync(role))
+            .Where(c => c.Type == "permission")
+            .Select(c => c.Value)
+            .ToArray();
+
         await cacheService.SetAsync(cacheKey, permissions, CacheTtl);
 
         return permissions;
-    }
-
-    private static string[] DeserializePermissions(string? permissionsJson)
-    {
-        if (string.IsNullOrWhiteSpace(permissionsJson))
-            return [];
-
-        try
-        {
-            return JsonSerializer.Deserialize<string[]>(permissionsJson) ?? [];
-        }
-        catch
-        {
-            return [];
-        }
     }
 }
