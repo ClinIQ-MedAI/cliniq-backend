@@ -24,47 +24,52 @@ public static class DbSeeder
 
     private static async Task SeedRolesAsync(RoleManager<ApplicationRole> roleManager)
     {
-        var superAdminRole = await roleManager.FindByNameAsync("SuperAdmin");
-        if (superAdminRole == null)
-        {
-            superAdminRole = new ApplicationRole
-            {
-                Name = "SuperAdmin",
-                IsDefault = true,
-                Permissions = JsonSerializer.Serialize(new[]
-                {
-                    "Permissions.Patients.View",
-                    "Permissions.Patients.Create",
-                    "Permissions.Patients.Update",
-                    "Permissions.Patients.Delete",
-                    "Permissions.Doctors.View",
-                    "Permissions.Doctors.Create",
-                    "Permissions.Doctors.Update",
-                    "Permissions.Doctors.Delete",
-                })
-            };
-            await roleManager.CreateAsync(superAdminRole);
-        }
+        var superAdminRole = await roleManager.FindByNameAsync("SuperAdmin")
+            ?? new ApplicationRole { Name = "SuperAdmin" };
 
-        var adminRole = await roleManager.FindByNameAsync("Admin");
-        if (adminRole == null)
+        superAdminRole.IsDefault = true;
+        superAdminRole.Permissions = JsonSerializer.Serialize(new[]
         {
-            adminRole = new ApplicationRole
-            {
-                Name = "Admin",
-                IsDefault = true,
-                Permissions = JsonSerializer.Serialize(new[]
-                {
-                    "Permissions.Patients.View",
-                    "Permissions.Patients.Create",
-                    "Permissions.Patients.Update",
-                    "Permissions.Doctors.View",
-                    "Permissions.Doctors.Create",
-                    "Permissions.Doctors.Update",
-                })
-            };
+            "Permissions.Patients.View",
+            "Permissions.Patients.Create",
+            "Permissions.Patients.Update",
+            "Permissions.Patients.Delete",
+            "Permissions.Doctors.View",
+            "Permissions.Doctors.Create",
+            "Permissions.Doctors.Update",
+            "Permissions.Doctors.Delete",
+            "Permissions.Roles.View",
+            "Permissions.Roles.Create",
+            "Permissions.Roles.Update",
+            "Permissions.Roles.Delete",
+        });
+
+        if (superAdminRole.Id is null)
+            await roleManager.CreateAsync(superAdminRole);
+        else
+            await roleManager.UpdateAsync(superAdminRole);
+
+        var adminRole = await roleManager.FindByNameAsync("Admin")
+            ?? new ApplicationRole { Name = "Admin" };
+
+        adminRole.IsDefault = true;
+        adminRole.Permissions = JsonSerializer.Serialize(new[]
+        {
+            "Permissions.Patients.View",
+            "Permissions.Patients.Create",
+            "Permissions.Patients.Update",
+            "Permissions.Doctors.View",
+            "Permissions.Doctors.Create",
+            "Permissions.Doctors.Update",
+            "Permissions.Roles.View",
+            "Permissions.Roles.Create",
+            "Permissions.Roles.Update",
+        });
+
+        if (adminRole.Id is null)
             await roleManager.CreateAsync(adminRole);
-        }
+        else
+            await roleManager.UpdateAsync(adminRole);
     }
 
     private static async Task SeedUsersAsync(UserManager<ApplicationUser> userManager, AppDbContext context)
