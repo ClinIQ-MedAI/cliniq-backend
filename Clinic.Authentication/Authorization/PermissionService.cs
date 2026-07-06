@@ -42,11 +42,6 @@ public class PermissionService(
         return [.. allPermissions];
     }
 
-    public async Task InvalidateRoleCacheAsync(string roleId)
-    {
-        await cacheService.RemoveAsync($"role:{roleId}:permissions");
-    }
-
     private static List<string> GetRoles(ClaimsPrincipal user)
     {
         return user.Claims
@@ -58,18 +53,44 @@ public class PermissionService(
     private async Task<string[]> GetCachedPermissionsAsync(ApplicationRole role)
     {
         var cacheKey = $"role:{role.Id}:permissions";
-        var permissions = await cacheService.GetAsync<string[]>(cacheKey);
 
-        if (permissions is not null)
-            return permissions;
+        try
+        {
+            var cached = await cacheService.GetAsync<string[]>(cacheKey);
+            if (cached is not null)
+                return cached;
+        }
+        catch
+        {
+            // Redis unavailable, fall through to DB
+        }
 
-        permissions = (await roleManager.GetClaimsAsync(role))
+        var permissions = (await roleManager.GetClaimsAsync(role))
             .Where(c => c.Type == "permission")
             .Select(c => c.Value)
             .ToArray();
 
-        await cacheService.SetAsync(cacheKey, permissions, CacheTtl);
+        try
+        {
+            await cacheService.SetAsync(cacheKey, permissions, CacheTtl);
+        }
+        catch
+        {
+            // Silently ignore cache write failures
+        }
 
         return permissions;
+    }
+
+    public async Task InvalidateRoleCacheAsync(string roleId)
+    {
+        try
+        {
+            await cacheService.RemoveAsync($"role:{roleId}:permissions");
+        }
+        catch
+        {
+            // Redis unavailable, ignore
+        }
     }
 }
