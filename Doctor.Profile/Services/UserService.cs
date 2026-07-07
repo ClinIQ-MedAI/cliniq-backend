@@ -1,5 +1,7 @@
 using Clinic.Infrastructure.Entities;
+using Clinic.Infrastructure.Entities.Enums;
 using Clinic.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
 
 namespace Doctor.Profile.Services;
 
@@ -10,15 +12,26 @@ public class UserService(
     private readonly UserManager<ApplicationUser> _userManager = userManager;
     private readonly AppDbContext _context = context;
 
-    public async Task<Result<UserProfileResponse>> GetProfileAsync(string userId)
+    public async Task<Result<DoctorProfileResponse>> GetProfileAsync(string userId)
     {
         var user = await _userManager.FindByIdAsync(userId);
 
-        var response = new UserProfileResponse(
+        var doctorProfile = await _context.DoctorProfiles
+            .Where(d => d.Id == userId)
+            .FirstOrDefaultAsync();
+
+        var response = new DoctorProfileResponse(
             user!.Email!,
             user.UserName!,
             user.FirstName,
-            user.LastName
+            user.LastName,
+            doctorProfile?.Specialization,
+            doctorProfile?.LicenseNumber,
+            doctorProfile?.LicenseExpiryDate,
+            doctorProfile?.PersonalIdentityPhotoUrl,
+            doctorProfile?.MedicalLicenseUrl,
+            doctorProfile?.RejectionReason,
+            doctorProfile?.Status.ToString() ?? DoctorStatus.INCOMPLETE_PROFILE.ToString()
         );
 
         return Result.Succeed(response);
