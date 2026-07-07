@@ -44,7 +44,7 @@ public class AuthController(
     /// <summary>
     /// Login with email and password or OTP.
     /// Requires verified email or phone.
-    /// Returns JWT with patient_status and doctor_status claims.
+    /// Returns JWT with user, doctor, patient, and roles data.
     /// </summary>
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request, CancellationToken cancellationToken)
@@ -52,14 +52,7 @@ public class AuthController(
         var result = await _authService.LoginAsync(request, cancellationToken);
 
         return result.IsSucceed ?
-        Ok(new
-        {
-            Token = result.Value.Token,
-            RefreshToken = result.Value.RefreshToken,
-            ExpiresAt = result.Value.ExpiresAt,
-            PatientStatus = result.Value.PatientStatus.ToString(),
-            DoctorStatus = result.Value.DoctorStatus.ToString()
-        }) :
+        Ok(result.Value) :
         result.ToProblem();
     }
 

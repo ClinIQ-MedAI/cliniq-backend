@@ -6,6 +6,7 @@ using Clinic.Infrastructure.Entities;
 using Clinic.Infrastructure.Entities.Enums;
 using Clinic.Infrastructure.Persistence;
 using Clinic.Infrastructure.Services;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using Clinic.Authentication.Localization;
 
@@ -29,46 +30,87 @@ public class AuthService(
     private readonly IEnumerable<ILoginStrategy> _loginStrategies = loginStrategies;
     private readonly IStringLocalizer<Messages> _localizer = localizer;
 
-    public async Task<Result<AuthTokenResponse>> LoginAsync(LoginRequest request, CancellationToken cancellationToken = default)
+    public async Task<Result<LoginResponse>> LoginAsync(LoginRequest request, CancellationToken cancellationToken = default)
     {
         // Find user by email
         var user = await _userManager.FindByEmailAsync(request.Email);
         if (user == null)
-            return Result.Failure<AuthTokenResponse>(Error.BadRequest("Auth.InvalidCredentials", _localizer["InvalidCredentials"]));
+            return Result.Failure<LoginResponse>(Error.BadRequest("Auth.InvalidCredentials", _localizer["InvalidCredentials"]));
 
         // Check if user is verified
         if (!user.EmailConfirmed && !user.PhoneNumberConfirmed)
-            return Result.Failure<AuthTokenResponse>(Error.BadRequest("Auth.NotVerified", _localizer["NotVerified"]));
+            return Result.Failure<LoginResponse>(Error.BadRequest("Auth.NotVerified", _localizer["NotVerified"]));
 
         // Select appropriate login strategy
         ILoginStrategy? strategy = _loginStrategies.FirstOrDefault(s => s.CanHandle(request));
         if (strategy == null)
-            return Result.Failure<AuthTokenResponse>(Error.BadRequest("Auth.InvalidLoginRequest", _localizer["InvalidLoginRequest"]));
+            return Result.Failure<LoginResponse>(Error.BadRequest("Auth.InvalidLoginRequest", _localizer["InvalidLoginRequest"]));
 
         // Validate credentials using strategy
         var isValid = await strategy.ValidateAsync(user, request, cancellationToken);
         if (!isValid)
-            return Result.Failure<AuthTokenResponse>(Error.BadRequest("Auth.InvalidCredentials", _localizer["InvalidCredentials"]));
+            return Result.Failure<LoginResponse>(Error.BadRequest("Auth.InvalidCredentials", _localizer["InvalidCredentials"]));
 
-        // Load profile statuses
-        var patientProfile = await _context.PatientProfiles
+        // Load profiles
+        var patientEntity = await _context.PatientProfiles
             .Where(p => p.Id == user.Id)
-            .Select(p => new { p.Status })
             .FirstOrDefaultAsync(cancellationToken);
 
-        var doctorProfile = await _context.DoctorProfiles
+        var doctorEntity = await _context.DoctorProfiles
             .Where(d => d.Id == user.Id)
-            .Select(d => new { d.Status })
             .FirstOrDefaultAsync(cancellationToken);
 
-        var patientStatus = patientProfile?.Status ?? PatientStatus.INCOMPLETE_PROFILE;
-        var doctorStatus = doctorProfile?.Status ?? DoctorStatus.INCOMPLETE_PROFILE;
+        var patientStatus = patientEntity?.Status ?? PatientStatus.INCOMPLETE_PROFILE;
+        var doctorStatus = doctorEntity?.Status ?? DoctorStatus.INCOMPLETE_PROFILE;
+
+        PatientInfo? patientProfile = patientEntity is null ? null : new PatientInfo(
+            patientEntity.Status.ToString(),
+            patientEntity.Height,
+            patientEntity.Weight,
+            patientEntity.BloodType,
+            patientEntity.Allergies,
+            patientEntity.ChronicConditions,
+            patientEntity.EmergencyContactName,
+            patientEntity.EmergencyContactPhone
+        );
+
+        DoctorInfo? doctorProfile = doctorEntity is null ? null : new DoctorInfo(
+            doctorEntity.Status.ToString(),
+            doctorEntity.Specialization,
+            doctorEntity.LicenseNumber,
+            doctorEntity.LicenseExpiryDate,
+            doctorEntity.PersonalIdentityPhotoUrl,
+            doctorEntity.MedicalLicenseUrl,
+            doctorEntity.RejectionReason
+        );
+
+        // Load roles
+        var roles = (await _userManager.GetRolesAsync(user)).ToList();
 
         // Generate JWT token
         var (token, expiresAt) = await _jwtProvider.GenerateTokenAsync(user, patientStatus, doctorStatus);
         var refreshToken = _jwtProvider.GenerateRefreshToken();
 
-        return Result.Succeed(new AuthTokenResponse(token, refreshToken, expiresAt, patientStatus, doctorStatus));
+        var response = new LoginResponse(
+            token,
+            refreshToken,
+            expiresAt,
+            new UserInfo(
+                user.Id,
+                user.Email!,
+                user.UserName,
+                user.FirstName,
+                user.LastName,
+                user.PhoneNumber,
+                user.EmailConfirmed,
+                user.PhoneNumberConfirmed
+            ),
+            doctorProfile,
+            patientProfile,
+            roles
+        );
+
+        return Result.Succeed(response);
     }
 
     public async Task<Result> SendLoginOtpAsync(string email, CancellationToken cancellationToken = default)
