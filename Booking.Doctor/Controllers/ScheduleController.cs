@@ -51,4 +51,24 @@ public class ScheduleController : ControllerBase
 
         return result.IsSucceed ? Ok(result.Value) : result.ToProblem();
     }
+
+    [HttpGet("bookings")]
+    public async Task<IActionResult> GetBookings(CancellationToken cancellationToken)
+    {
+        var doctorId = User.GetUserId();
+
+        var result = await _scheduleService.GetDoctorBookingsAsync(doctorId!, cancellationToken);
+
+        return Ok(result.Value);
+    }
+
+    [HttpPut("bookings/{id}/status")]
+    public async Task<IActionResult> UpdateBookingStatus(int id, [FromBody] UpdateBookingStatusRequest request, CancellationToken cancellationToken)
+    {
+        var doctorId = User.GetUserId();
+
+        var result = await _scheduleService.UpdateBookingStatusAsync(doctorId!, id, request, cancellationToken);
+
+        return result.IsSucceed ? NoContent() : result.ToProblem();
+    }
 }

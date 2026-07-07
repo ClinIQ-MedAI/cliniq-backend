@@ -94,4 +94,40 @@ public class ScheduleService : IScheduleService
 
         return Result.Succeed(schedules);
     }
+
+    public async Task<Result<List<DoctorBookingResponse>>> GetDoctorBookingsAsync(string doctorId, CancellationToken cancellationToken = default)
+    {
+        var bookings = await _dbContext.Bookings
+            .Include(b => b.DoctorSchedule)
+            .Include(b => b.Patient)
+                .ThenInclude(p => p.User)
+            .Where(b => b.DoctorSchedule.DoctorId == doctorId)
+            .OrderByDescending(b => b.DoctorSchedule.Date)
+            .Select(b => new DoctorBookingResponse(
+                b.Id,
+                $"{b.Patient.User.FirstName} {b.Patient.User.LastName}",
+                b.Patient.User.PhoneNumber,
+                b.DoctorSchedule.Date,
+                b.Status
+            ))
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
+        return Result.Succeed(bookings);
+    }
+
+    public async Task<Result> UpdateBookingStatusAsync(string doctorId, int bookingId, UpdateBookingStatusRequest request, CancellationToken cancellationToken = default)
+    {
+        var booking = await _dbContext.Bookings
+            .Include(b => b.DoctorSchedule)
+            .FirstOrDefaultAsync(b => b.Id == bookingId && b.DoctorSchedule.DoctorId == doctorId, cancellationToken);
+
+        if (booking is null)
+            return Result.Failure(Error.NotFound("Booking.NotFound", "Booking not found"));
+
+        booking.Status = request.Status;
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        return Result.Succeed();
+    }
 }
