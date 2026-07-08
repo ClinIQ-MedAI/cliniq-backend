@@ -1,6 +1,7 @@
 using Booking.Doctor.Contracts;
 using Booking.Doctor.Services;
 using Clinic.Authentication.Authorization;
+using Clinic.Infrastructure.Entities.Enums;
 
 namespace Booking.Doctor.Controllers;
 
@@ -53,16 +54,40 @@ public class ScheduleController : ControllerBase
     }
 
     [HttpGet("bookings")]
-    public async Task<IActionResult> GetBookings(CancellationToken cancellationToken)
+    public async Task<IActionResult> GetBookings(
+        [FromQuery] DateTime? from,
+        [FromQuery] DateTime? to,
+        [FromQuery] BookingStatus? status,
+        CancellationToken cancellationToken)
     {
         var doctorId = User.GetUserId();
 
-        var result = await _scheduleService.GetDoctorBookingsAsync(doctorId!, cancellationToken);
+        var result = await _scheduleService.GetDoctorBookingsAsync(doctorId!, from, to, status, cancellationToken);
 
         return Ok(result.Value);
     }
 
-    [HttpPut("bookings/{id}/status")]
+    [HttpGet("bookings/{id}")]
+    public async Task<IActionResult> GetBookingDetail(int id, CancellationToken cancellationToken)
+    {
+        var doctorId = User.GetUserId();
+
+        var result = await _scheduleService.GetBookingByIdAsync(doctorId!, id, cancellationToken);
+
+        return result.IsSucceed ? Ok(result.Value) : result.ToProblem();
+    }
+
+    [HttpGet("patients/{patientId}")]
+    public async Task<IActionResult> GetPatientDetail(string patientId, CancellationToken cancellationToken)
+    {
+        var doctorId = User.GetUserId();
+
+        var result = await _scheduleService.GetPatientDetailAsync(doctorId!, patientId, cancellationToken);
+
+        return result.IsSucceed ? Ok(result.Value) : result.ToProblem();
+    }
+
+    [HttpPatch("bookings/{id}/status")]
     public async Task<IActionResult> UpdateBookingStatus(int id, [FromBody] UpdateBookingStatusRequest request, CancellationToken cancellationToken)
     {
         var doctorId = User.GetUserId();

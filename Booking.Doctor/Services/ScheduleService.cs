@@ -1,5 +1,6 @@
 using Booking.Doctor.Contracts;
 using Clinic.Infrastructure.Entities;
+using Clinic.Infrastructure.Entities.Enums;
 using Clinic.Infrastructure.Persistence;
 
 namespace Booking.Doctor.Services;
@@ -95,17 +96,31 @@ public class ScheduleService : IScheduleService
         return Result.Succeed(schedules);
     }
 
-    public async Task<Result<List<DoctorBookingResponse>>> GetDoctorBookingsAsync(string doctorId, CancellationToken cancellationToken = default)
+    public async Task<Result<List<DoctorBookingResponse>>> GetDoctorBookingsAsync(string doctorId, DateTime? from = null, DateTime? to = null, BookingStatus? status = null, CancellationToken cancellationToken = default)
     {
-        var bookings = await _dbContext.Bookings
+        var query = _dbContext.Bookings
             .Include(b => b.DoctorSchedule)
             .Include(b => b.Patient)
                 .ThenInclude(p => p.User)
             .Where(b => b.DoctorSchedule.DoctorId == doctorId)
+            .AsQueryable();
+
+        if (from.HasValue)
+            query = query.Where(b => b.DoctorSchedule.Date >= DateOnly.FromDateTime(from.Value));
+
+        if (to.HasValue)
+            query = query.Where(b => b.DoctorSchedule.Date <= DateOnly.FromDateTime(to.Value));
+
+        if (status.HasValue)
+            query = query.Where(b => b.Status == status.Value);
+
+        var bookings = await query
             .OrderByDescending(b => b.DoctorSchedule.Date)
             .Select(b => new DoctorBookingResponse(
                 b.Id,
+                b.PatientId,
                 $"{b.Patient.User.FirstName} {b.Patient.User.LastName}",
+                b.Patient.User.Email,
                 b.Patient.User.PhoneNumber,
                 b.DoctorSchedule.Date,
                 b.Status
@@ -114,6 +129,85 @@ public class ScheduleService : IScheduleService
             .ToListAsync(cancellationToken);
 
         return Result.Succeed(bookings);
+    }
+
+    public async Task<Result<BookingDetailResponse>> GetBookingByIdAsync(string doctorId, int bookingId, CancellationToken cancellationToken = default)
+    {
+        var booking = await _dbContext.Bookings
+            .Include(b => b.DoctorSchedule)
+            .Include(b => b.Patient)
+                .ThenInclude(p => p.User)
+            .Where(b => b.DoctorSchedule.DoctorId == doctorId)
+            .FirstOrDefaultAsync(b => b.Id == bookingId, cancellationToken);
+
+        if (booking is null)
+            return Result.Failure<BookingDetailResponse>(Error.NotFound("Booking.NotFound", "Booking not found"));
+
+        var response = new BookingDetailResponse(
+            booking.Id,
+            booking.PatientId,
+            $"{booking.Patient.User.FirstName} {booking.Patient.User.LastName}",
+            booking.Patient.User.Email,
+            booking.Patient.User.PhoneNumber,
+            booking.Patient.User.DateOfBirth,
+            booking.Patient.User.Gender?.ToString(),
+            booking.Patient.Height,
+            booking.Patient.Weight,
+            booking.Patient.HasDiabetes,
+            booking.Patient.HasPressureIssues,
+            booking.Patient.BloodType,
+            booking.Patient.Allergies,
+            booking.Patient.ChronicConditions,
+            booking.Patient.EmergencyContactName,
+            booking.Patient.EmergencyContactPhone,
+            booking.DoctorSchedule.Date,
+            booking.Status
+        );
+
+        return Result.Succeed(response);
+    }
+
+    public async Task<Result<PatientDetailResponse>> GetPatientDetailAsync(string doctorId, string patientId, CancellationToken cancellationToken = default)
+    {
+        var patient = await _dbContext.PatientProfiles
+            .Include(p => p.User)
+            .FirstOrDefaultAsync(p => p.Id == patientId, cancellationToken);
+
+        if (patient is null)
+            return Result.Failure<PatientDetailResponse>(Error.NotFound("Patient.NotFound", "Patient not found"));
+
+        var appointments = await _dbContext.Bookings
+            .Include(b => b.DoctorSchedule)
+            .Where(b => b.PatientId == patientId && b.DoctorSchedule.DoctorId == doctorId)
+            .OrderByDescending(b => b.DoctorSchedule.Date)
+            .Select(b => new PatientAppointmentDto(
+                b.Id,
+                b.DoctorSchedule.Date,
+                b.Status
+            ))
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
+        var response = new PatientDetailResponse(
+            patient.Id,
+            $"{patient.User.FirstName} {patient.User.LastName}",
+            patient.User.Email,
+            patient.User.PhoneNumber,
+            patient.User.DateOfBirth,
+            patient.User.Gender?.ToString(),
+            patient.Height,
+            patient.Weight,
+            patient.HasDiabetes,
+            patient.HasPressureIssues,
+            patient.BloodType,
+            patient.Allergies,
+            patient.ChronicConditions,
+            patient.EmergencyContactName,
+            patient.EmergencyContactPhone,
+            appointments
+        );
+
+        return Result.Succeed(response);
     }
 
     public async Task<Result> UpdateBookingStatusAsync(string doctorId, int bookingId, UpdateBookingStatusRequest request, CancellationToken cancellationToken = default)
