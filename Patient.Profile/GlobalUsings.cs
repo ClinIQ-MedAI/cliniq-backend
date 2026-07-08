@@ -1,4 +1,5 @@
 // Patient.Profile namespaces
+global using Patient.Profile.Contracts;
 global using Patient.Profile.Services;
 
 // Clinic.Authentication namespaces
