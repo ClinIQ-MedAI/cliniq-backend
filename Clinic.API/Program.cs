@@ -103,7 +103,7 @@ builder.Services.AddOpenApi("v1", options =>
 builder.Services.AddInfrastructure(builder.Configuration);
 
 // Authentication Module
-builder.Services.AddAuthenticationModule(builder.Configuration);
+builder.Services.AddAuthenticationModule(builder.Configuration, builder.Environment);
 
 // Modules
 builder.Services.AddPatientProfileModule(builder.Configuration);

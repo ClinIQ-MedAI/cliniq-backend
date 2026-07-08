@@ -6,6 +6,7 @@ using Clinic.Infrastructure.Entities.Enums;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace Clinic.Authentication;
 
@@ -17,7 +18,7 @@ public static class DependencyInjection
     /// <summary>
     /// Adds the authentication module services.
     /// </summary>
-    public static IServiceCollection AddAuthenticationModule(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddAuthenticationModule(this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
     {
         // Configure JWT options
         var jwtOptions = configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>()
@@ -37,7 +38,7 @@ public static class DependencyInjection
             {
                 ValidateIssuer = true,
                 ValidateAudience = true,
-                ValidateLifetime = true,
+                ValidateLifetime = !environment.IsDevelopment(),
                 ValidateIssuerSigningKey = true,
                 ValidIssuer = jwtOptions.Issuer,
                 ValidAudience = jwtOptions.Audience,
