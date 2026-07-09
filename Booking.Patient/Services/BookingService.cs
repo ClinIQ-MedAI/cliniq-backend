@@ -2,6 +2,7 @@ using Booking.Patient.Contracts;
 using Clinic.Infrastructure.Entities;
 using Clinic.Infrastructure.Entities.Enums;
 using Clinic.Infrastructure.Persistence;
+using Clinic.Infrastructure.Services;
 using Booking.Patient.Localization;
 using Microsoft.Extensions.Localization;
 
@@ -10,12 +11,15 @@ namespace Booking.Patient.Services;
 public class BookingService : IBookingService
 {
     private readonly AppDbContext _dbContext;
+    private readonly INotificationService _notificationService;
     private readonly int UpcomingPeriodDays = 7;
 
     public BookingService(AppDbContext dbContext,
+        INotificationService notificationService,
         IStringLocalizer<Messages> localizer)
     {
         _dbContext = dbContext;
+        _notificationService = notificationService;
         _localizer = localizer;
     }
 
@@ -23,6 +27,14 @@ public class BookingService : IBookingService
 
     public async Task<Result<int>> BookAppointmentAsync(string patientId, string doctorId, DateOnly date, CancellationToken cancellationToken = default)
     {
+        var patient = await _dbContext.PatientProfiles
+            .Include(p => p.User)
+            .FirstOrDefaultAsync(p => p.Id == patientId, cancellationToken);
+
+        var doctor = await _dbContext.DoctorProfiles
+            .Include(d => d.User)
+            .FirstOrDefaultAsync(d => d.Id == doctorId, cancellationToken);
+
         var schedule = await _dbContext.DoctorSchedules
             .FirstOrDefaultAsync(ds => ds.DoctorId == doctorId && ds.Date == date, cancellationToken);
 
@@ -66,6 +78,17 @@ public class BookingService : IBookingService
         schedule.BookingCount++;
 
         await _dbContext.SaveChangesAsync(cancellationToken);
+
+        if (patient?.User is not null && doctor?.User is not null)
+        {
+            await _notificationService.CreateNotificationAsync(
+                "New Appointment",
+                $"You have a new booking from {patient.User.FirstName} {patient.User.LastName} on {date:yyyy-MM-dd}.",
+                NotificationType.BOOKING_CREATED,
+                [doctor.User.Id],
+                booking.Id.ToString()
+            );
+        }
 
         return Result.Succeed(booking.Id);
     }

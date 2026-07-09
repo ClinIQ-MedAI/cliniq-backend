@@ -2,16 +2,19 @@ using Booking.Doctor.Contracts;
 using Clinic.Infrastructure.Entities;
 using Clinic.Infrastructure.Entities.Enums;
 using Clinic.Infrastructure.Persistence;
+using Clinic.Infrastructure.Services;
 
 namespace Booking.Doctor.Services;
 
 public class ScheduleService : IScheduleService
 {
     private readonly AppDbContext _dbContext;
+    private readonly INotificationService _notificationService;
 
-    public ScheduleService(AppDbContext dbContext)
+    public ScheduleService(AppDbContext dbContext, INotificationService notificationService)
     {
         _dbContext = dbContext;
+        _notificationService = notificationService;
     }
 
     public async Task<Result> SetAvailabilityAsync(string doctorId, SetAvailabilityRequest request, CancellationToken cancellationToken = default)
@@ -214,13 +217,47 @@ public class ScheduleService : IScheduleService
     {
         var booking = await _dbContext.Bookings
             .Include(b => b.DoctorSchedule)
+            .Include(b => b.Patient)
+                .ThenInclude(p => p.User)
             .FirstOrDefaultAsync(b => b.Id == bookingId && b.DoctorSchedule.DoctorId == doctorId, cancellationToken);
 
         if (booking is null)
             return Result.Failure(Error.NotFound("Booking.NotFound", "Booking not found"));
 
+        var previousStatus = booking.Status;
         booking.Status = request.Status;
         await _dbContext.SaveChangesAsync(cancellationToken);
+
+        if (request.Status == BookingStatus.CONFIRMED && previousStatus != BookingStatus.CONFIRMED)
+        {
+            await _notificationService.CreateNotificationAsync(
+                "Appointment Confirmed",
+                $"Your appointment on {booking.DoctorSchedule.Date:yyyy-MM-dd} has been confirmed.",
+                NotificationType.BOOKING_CONFIRMED,
+                [booking.Patient.User.Id],
+                booking.Id.ToString()
+            );
+        }
+        else if (request.Status == BookingStatus.CANCELLED && previousStatus != BookingStatus.CANCELLED)
+        {
+            await _notificationService.CreateNotificationAsync(
+                "Appointment Cancelled",
+                $"Your appointment on {booking.DoctorSchedule.Date:yyyy-MM-dd} has been cancelled.",
+                NotificationType.BOOKING_CANCELLED,
+                [booking.Patient.User.Id],
+                booking.Id.ToString()
+            );
+        }
+        else if (request.Status == BookingStatus.COMPLETED && previousStatus != BookingStatus.COMPLETED)
+        {
+            await _notificationService.CreateNotificationAsync(
+                "Appointment Completed",
+                $"Your appointment on {booking.DoctorSchedule.Date:yyyy-MM-dd} has been marked as completed.",
+                NotificationType.BOOKING_COMPLETED,
+                [booking.Patient.User.Id],
+                booking.Id.ToString()
+            );
+        }
 
         return Result.Succeed();
     }

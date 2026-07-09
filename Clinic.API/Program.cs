@@ -15,6 +15,10 @@ using Booking.Patient;
 using Chat.Doctor;
 using Chat.Patient;
 using Chat.Management;
+using Notification.User;
+using Notification.Management;
+using Contact.Public;
+using Contact.Management;
 using Serilog;
 using Scalar.AspNetCore;
 using Clinic.Infrastructure.Hubs;
@@ -36,7 +40,11 @@ builder.Services.AddControllers()
     .AddApplicationPart(typeof(Booking.Patient.DependencyInjection).Assembly)
     .AddApplicationPart(typeof(Chat.Doctor.DependencyInjection).Assembly)
     .AddApplicationPart(typeof(Chat.Patient.DependencyInjection).Assembly)
-    .AddApplicationPart(typeof(Chat.Management.DependencyInjection).Assembly);
+    .AddApplicationPart(typeof(Chat.Management.DependencyInjection).Assembly)
+    .AddApplicationPart(typeof(Notification.User.DependencyInjection).Assembly)
+    .AddApplicationPart(typeof(Notification.Management.DependencyInjection).Assembly)
+    .AddApplicationPart(typeof(Contact.Public.DependencyInjection).Assembly)
+    .AddApplicationPart(typeof(Contact.Management.DependencyInjection).Assembly);
 
 builder.Services.AddEndpointsApiExplorer();
 
@@ -116,6 +124,10 @@ builder.Services.AddBookingPatientModule();
 builder.Services.AddChatDoctorModule();
 builder.Services.AddChatPatientModule();
 builder.Services.AddChatManagementModule();
+builder.Services.AddNotificationUserModule();
+builder.Services.AddNotificationManagementModule();
+builder.Services.AddContactPublicModule();
+builder.Services.AddContactManagementModule();
 
 // SignalR
 builder.Services.AddSignalR();
@@ -167,6 +179,7 @@ app.UseAuthorization();
 
 app.MapGroup("api").MapControllers();
 app.MapHub<ChatHub>("/hubs/chat");
+app.MapHub<NotificationHub>("/hubs/notifications");
 
 // Map Health Checks endpoint
 app.MapHealthChecks("/health", new HealthCheckOptions

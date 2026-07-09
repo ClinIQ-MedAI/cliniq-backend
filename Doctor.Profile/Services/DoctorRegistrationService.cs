@@ -15,10 +15,12 @@ namespace Doctor.Profile.Services;
 public class DoctorRegistrationService(
     UserManager<ApplicationUser> userManager,
     AppDbContext context,
+    INotificationService notificationService,
     IStringLocalizer<Messages> localizer)
 {
     private readonly UserManager<ApplicationUser> _userManager = userManager;
     private readonly AppDbContext _context = context;
+    private readonly INotificationService _notificationService = notificationService;
     private readonly IStringLocalizer<Messages> _localizer = localizer;
 
     /// <summary>
@@ -53,6 +55,13 @@ public class DoctorRegistrationService(
         _context.DoctorProfiles.Add(doctorProfile);
 
         await _context.SaveChangesAsync(cancellationToken);
+
+        await _notificationService.NotifyAdminsAsync(
+            "New Doctor Join Request",
+            $"Dr. {user.FirstName} {user.LastName} has submitted their profile for verification.",
+            NotificationType.DOCTOR_JOIN_REQUEST,
+            userId
+        );
 
         return Result.Succeed();
     }

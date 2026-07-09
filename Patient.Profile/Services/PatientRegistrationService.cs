@@ -15,10 +15,12 @@ namespace Patient.Profile.Services;
 public class PatientRegistrationService(
     UserManager<ApplicationUser> userManager,
     AppDbContext context,
+    INotificationService notificationService,
     IStringLocalizer<Messages> localizer)
 {
     private readonly UserManager<ApplicationUser> _userManager = userManager;
     private readonly AppDbContext _context = context;
+    private readonly INotificationService _notificationService = notificationService;
     private readonly IStringLocalizer<Messages> _localizer = localizer;
 
     /// <summary>
@@ -64,6 +66,13 @@ public class PatientRegistrationService(
         {
             throw;
         }
+
+        await _notificationService.NotifyAdminsAsync(
+            "New Patient Registration",
+            $"{user.FirstName} {user.LastName} has completed their profile.",
+            NotificationType.PATIENT_NEW_REGISTRATION,
+            userId
+        );
 
         return Result.Succeed();
     }

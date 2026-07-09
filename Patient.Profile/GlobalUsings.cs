@@ -9,3 +9,4 @@ global using Clinic.Authentication.Contracts.Users;
 
 // Clinic.Infrastructure namespaces
 global using Clinic.Infrastructure.Abstractions;
+global using Clinic.Infrastructure.Services;
