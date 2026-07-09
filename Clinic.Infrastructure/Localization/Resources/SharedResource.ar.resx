@@ -70,4 +70,7 @@
   <data name="Auth.InvalidLoginRequest" xml:space="preserve">
     <value>طلب تسجيل دخول غير صالح - قم بتوفير كلمة المرور أو رمز التحقق</value>
   </data>
+  <data name="Validation.MaxBookingsRange" xml:space="preserve">
+    <value>يجب أن يكون الحد الأقصى للحجوزات بين 1 و 100.</value>
+  </data>
 </root>

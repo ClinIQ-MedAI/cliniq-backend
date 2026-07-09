@@ -30,6 +30,11 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllers()
+    .AddDataAnnotationsLocalization(options =>
+    {
+        options.DataAnnotationLocalizerProvider = (type, factory) =>
+            factory.Create(typeof(Clinic.Infrastructure.Localization.SharedResource));
+    })
     .AddApplicationPart(typeof(Clinic.Authentication.Controllers.AuthController).Assembly)
     .AddApplicationPart(typeof(Patient.Profile.DependencyInjection).Assembly)
     .AddApplicationPart(typeof(Doctor.Profile.DependencyInjection).Assembly)

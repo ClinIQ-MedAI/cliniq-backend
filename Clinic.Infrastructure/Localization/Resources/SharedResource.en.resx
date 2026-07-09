@@ -70,4 +70,7 @@
   <data name="Auth.InvalidLoginRequest" xml:space="preserve">
     <value>Invalid login request - provide password or OTP</value>
   </data>
+  <data name="Validation.MaxBookingsRange" xml:space="preserve">
+    <value>Maximum bookings must be between 1 and 100.</value>
+  </data>
 </root>

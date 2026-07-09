@@ -33,6 +33,7 @@ public class ScheduleService : IScheduleService
                 DayOfWeek = item.DayOfWeek,
                 StartTime = item.StartTime,
                 EndTime = item.EndTime,
+                MaxBookings = item.MaxBookings,
                 IsAvailable = true
             };
             _dbContext.DoctorAvailabilities.Add(availability);
