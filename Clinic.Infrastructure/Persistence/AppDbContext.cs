@@ -26,6 +26,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, 
     public DbSet<NotificationRecipient> NotificationRecipients => Set<NotificationRecipient>();
     public DbSet<ContactUsMessage> ContactUsMessages => Set<ContactUsMessage>();
     public DbSet<HealthNews> HealthNews => Set<HealthNews>();
+    public DbSet<AIJob> AIJobs => Set<AIJob>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

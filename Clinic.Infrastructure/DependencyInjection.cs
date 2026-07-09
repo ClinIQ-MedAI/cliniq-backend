@@ -10,6 +10,7 @@ using Clinic.Infrastructure.Health;
 using Microsoft.Extensions.Caching.StackExchangeRedis;
 using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
+using Clinic.Infrastructure.Services.Queue;
 
 namespace Clinic.Infrastructure;
 
@@ -109,6 +110,29 @@ public static class DependencyInjection
         services.AddTransient<IEmailSender, EmailService>();
 
         services.AddScoped<INotificationService, NotificationService>();
+
+        // ClinIQ AI Modalities Queue & HTTP Client Integration
+        services.Configure<QueueSettings>(configuration.GetSection(QueueSettings.SectionName));
+        services.Configure<AIServiceSettings>(configuration.GetSection(AIServiceSettings.SectionName));
+
+        services.AddHttpClient<IAIServiceClient, AIServiceClient>();
+
+        services.AddSingleton<IQueueService>(sp =>
+        {
+            var queueSettings = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<QueueSettings>>().Value;
+            var queueBackend = queueSettings.QueueBackend ?? Environment.GetEnvironmentVariable("QUEUE_BACKEND");
+
+            if (string.Equals(queueBackend, "redis", StringComparison.OrdinalIgnoreCase))
+            {
+                var redis = sp.GetRequiredService<IConnectionMultiplexer>();
+                var options = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<QueueSettings>>();
+                return new RedisQueueService(redis, options);
+            }
+
+            return new NullQueueService();
+        });
+
+        services.AddHostedService<QueueConsumerBackgroundService>();
 
         services.AddLocalization();
 
