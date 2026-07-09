@@ -5,7 +5,7 @@ using Clinic.Authentication.Authorization;
 namespace Booking.Patient.Controllers;
 
 [ApiController]
-[Route("bookings")]
+[Route("patient/bookings")]
 public class BookingController : ControllerBase
 {
     private readonly IBookingService _bookingService;

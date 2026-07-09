@@ -10,7 +10,7 @@ using Microsoft.Extensions.Localization;
 namespace Chat.Patient.Controllers;
 
 [ApiController]
-[Route("chat")]
+[Route("patient/chat")]
 [Authorize(Policy = PolicyNames.ActivePatient)]
 public class ChatController(
     IChatService chatService,

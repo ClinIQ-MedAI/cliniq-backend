@@ -6,7 +6,7 @@ using Clinic.Infrastructure.Entities.Enums;
 namespace Booking.Doctor.Controllers;
 
 [ApiController]
-[Route("schedules")]
+[Route("doctor/schedules")]
 [Authorize(Policy = PolicyNames.ActiveDoctor)]
 public class ScheduleController : ControllerBase
 {
