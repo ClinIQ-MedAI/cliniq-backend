@@ -225,26 +225,6 @@ public class BookingService : IBookingService
     {
         var dayOfWeek = date.DayOfWeek;
 
-        // "Left join" logic by requesting profiles and filtering on availability existence
-        // The requirement is "get available doctors", so we filter where availability exists and IsAvailable is true.
-
-        // System.Console.WriteLine(_dbContext.DoctorProfiles
-        //     .Include(d => d.User)
-        //     .SelectMany(
-        //         d => d.AvailabilityDays.Where(da => da.DayOfWeek == dayOfWeek && da.IsAvailable),
-        //         (doctor, availability) => new DoctorSearchDto(
-        //             doctor.Id,
-        //             $"{doctor.User.FirstName} {doctor.User.LastName}",
-        //             doctor.Specialization ?? "General",
-        //             doctor.PersonalIdentityPhotoUrl,
-        //             4.8, // Hardcoded Rating
-        //             120, // Hardcoded Reviews
-        //             availability.StartTime,
-        //             availability.EndTime
-        //         )).ToQueryString());
-
-        // return Result.Succeed(new List<DoctorSearchDto>());
-
         var doctors = await _dbContext.DoctorProfiles
             .Include(d => d.User)
             .SelectMany(
@@ -254,13 +234,217 @@ public class BookingService : IBookingService
                     $"{doctor.User.FirstName} {doctor.User.LastName}",
                     doctor.Specialization ?? "General",
                     doctor.PersonalIdentityPhotoUrl,
-                    4.8, // Hardcoded Rating
-                    120, // Hardcoded Reviews
+                    4.8,
+                    120,
                     availability.StartTime,
                     availability.EndTime
                 ))
             .ToListAsync(cancellationToken);
 
         return Result.Succeed(doctors);
+    }
+
+    public async Task<List<FlutterAppointmentDto>> GetExaminationAppointmentsAsync(string patientId, CancellationToken cancellationToken = default)
+    {
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+
+        var bookings = await _dbContext.Bookings
+            .Include(b => b.DoctorSchedule)
+                .ThenInclude(ds => ds.Doctor)
+                    .ThenInclude(d => d.User)
+            .Include(b => b.DoctorSchedule)
+                .ThenInclude(ds => ds.Doctor)
+                    .ThenInclude(d => d.AvailabilityDays)
+            .Where(b => b.PatientId == patientId
+                && (b.Status == BookingStatus.PENDING || b.Status == BookingStatus.CONFIRMED)
+                && b.DoctorSchedule.Date >= today)
+            .OrderBy(b => b.DoctorSchedule.Date)
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
+        return bookings.Select(b =>
+        {
+            var doctor = b.DoctorSchedule.Doctor;
+            var availability = doctor.AvailabilityDays
+                .FirstOrDefault(a => a.DayOfWeek == b.DoctorSchedule.Date.DayOfWeek && a.IsAvailable);
+            var time = availability?.StartTime ?? new TimeSpan(9, 0, 0);
+
+            return new FlutterAppointmentDto(
+                b.Id.ToString(),
+                $"{doctor.User.FirstName} {doctor.User.LastName}",
+                doctor.Specialization ?? "General",
+                doctor.PersonalIdentityPhotoUrl ?? "",
+                b.DoctorSchedule.Date.ToString("yyyy-MM-dd"),
+                $"{time.Hours:D2}:{time.Minutes:D2}",
+                "Upcoming"
+            );
+        }).ToList();
+    }
+
+    public async Task<List<FlutterAppointmentDto>> GetAvailableDoctorsFlutterAsync(DateOnly date, CancellationToken cancellationToken = default)
+    {
+        var dayOfWeek = date.DayOfWeek;
+
+        var doctors = await _dbContext.DoctorProfiles
+            .Include(d => d.User)
+            .Include(d => d.AvailabilityDays)
+            .SelectMany(
+                d => d.AvailabilityDays.Where(da => da.DayOfWeek == dayOfWeek && da.IsAvailable),
+                (doctor, availability) => new FlutterAppointmentDto(
+                    doctor.Id,
+                    $"{doctor.User.FirstName} {doctor.User.LastName}",
+                    doctor.Specialization ?? "General",
+                    doctor.PersonalIdentityPhotoUrl ?? "",
+                    date.ToString("yyyy-MM-dd"),
+                    $"{availability.StartTime.Hours:D2}:{availability.StartTime.Minutes:D2}",
+                    "Available"
+                ))
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
+        return doctors;
+    }
+
+    public async Task<Result<FlutterDoctorScheduleDataDto>> GetDoctorScheduleFlutterAsync(string doctorId, CancellationToken cancellationToken = default)
+    {
+        var doctor = await _dbContext.DoctorProfiles
+            .Include(d => d.AvailabilityDays)
+            .FirstOrDefaultAsync(d => d.Id == doctorId, cancellationToken);
+
+        if (doctor is null)
+            return Result.Failure<FlutterDoctorScheduleDataDto>(Error.NotFound("Doctor.NotFound", _localizer["DoctorNotFound"]));
+
+        var availabilities = doctor.AvailabilityDays.Where(a => a.IsAvailable).ToList();
+
+        var weeklySchedule = availabilities.Select(a => new FlutterWeeklyScheduleDto(
+            a.DayOfWeek.ToString()[..3],
+            $"{a.StartTime.Hours:D2}:{a.StartTime.Minutes:D2} - {a.EndTime.Hours:D2}:{a.EndTime.Minutes:D2}"
+        )).ToList();
+
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var endDate = today.AddDays(UpcomingPeriodDays);
+
+        var schedules = await _dbContext.DoctorSchedules
+            .Where(ds => ds.DoctorId == doctorId && ds.Date >= today && ds.Date <= endDate)
+            .ToListAsync(cancellationToken);
+
+        var dates = new List<FlutterScheduleDateDto>();
+        for (int i = 0; i < UpcomingPeriodDays; i++)
+        {
+            var date = today.AddDays(i);
+            var dayOfWeek = date.DayOfWeek;
+            var availability = availabilities.FirstOrDefault(a => a.DayOfWeek == dayOfWeek);
+            var schedule = schedules.FirstOrDefault(s => s.Date == date);
+
+            if (availability == null)
+                continue;
+
+            bool isFull;
+            int currentBookings;
+            int maxBookings = availability.MaxBookings;
+
+            if (schedule != null)
+            {
+                currentBookings = schedule.BookingCount;
+                isFull = !schedule.IsAvailable || schedule.BookingCount >= maxBookings;
+            }
+            else
+            {
+                currentBookings = 0;
+                isFull = false;
+            }
+
+            dates.Add(new FlutterScheduleDateDto(
+                dayOfWeek.ToString()[..3],
+                date.Day.ToString(),
+                date.ToString("MMM"),
+                date.ToString("yyyy-MM-dd"),
+                isFull ? "Full" : $"{currentBookings}/{maxBookings}",
+                isFull
+            ));
+        }
+
+        return Result.Succeed(new FlutterDoctorScheduleDataDto(weeklySchedule, dates));
+    }
+
+    public async Task<Result<FlutterDoctorDetailsDataDto>> GetDoctorDetailsFlutterAsync(string doctorId, CancellationToken cancellationToken = default)
+    {
+        var doctor = await _dbContext.DoctorProfiles
+            .Include(d => d.User)
+            .Include(d => d.AvailabilityDays)
+            .Include(d => d.Schedules)
+            .FirstOrDefaultAsync(d => d.Id == doctorId, cancellationToken);
+
+        if (doctor is null)
+            return Result.Failure<FlutterDoctorDetailsDataDto>(Error.NotFound("Doctor.NotFound", _localizer["DoctorNotFound"]));
+
+        var totalAppointments = await _dbContext.Bookings
+            .CountAsync(b => b.DoctorSchedule.DoctorId == doctorId && b.Status != BookingStatus.CANCELLED, cancellationToken);
+
+        var availabilities = doctor.AvailabilityDays.Where(a => a.IsAvailable).ToList();
+
+        var weeklySchedule = availabilities.Select(a => new FlutterWeeklyScheduleDto(
+            a.DayOfWeek.ToString()[..3],
+            $"{a.StartTime.Hours:D2}:{a.StartTime.Minutes:D2} - {a.EndTime.Hours:D2}:{a.EndTime.Minutes:D2}"
+        )).ToList();
+
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var endDate = today.AddDays(UpcomingPeriodDays);
+
+        var schedules = await _dbContext.DoctorSchedules
+            .Where(ds => ds.DoctorId == doctorId && ds.Date >= today && ds.Date <= endDate)
+            .ToListAsync(cancellationToken);
+
+        var dates = new List<FlutterScheduleDateDto>();
+        for (int i = 0; i < UpcomingPeriodDays; i++)
+        {
+            var date = today.AddDays(i);
+            var dayOfWeek = date.DayOfWeek;
+            var availability = availabilities.FirstOrDefault(a => a.DayOfWeek == dayOfWeek);
+            var schedule = schedules.FirstOrDefault(s => s.Date == date);
+
+            if (availability == null)
+                continue;
+
+            bool isFull;
+            int currentBookings;
+            int maxBookings = availability.MaxBookings;
+
+            if (schedule != null)
+            {
+                currentBookings = schedule.BookingCount;
+                isFull = !schedule.IsAvailable || schedule.BookingCount >= maxBookings;
+            }
+            else
+            {
+                currentBookings = 0;
+                isFull = false;
+            }
+
+            dates.Add(new FlutterScheduleDateDto(
+                dayOfWeek.ToString()[..3],
+                date.Day.ToString(),
+                date.ToString("MMM"),
+                date.ToString("yyyy-MM-dd"),
+                isFull ? "Full" : $"{currentBookings}/{maxBookings}",
+                isFull
+            ));
+        }
+
+        var doctorDto = new FlutterDoctorDetailsDto(
+            doctor.Id,
+            $"{doctor.User.FirstName} {doctor.User.LastName}",
+            doctor.PersonalIdentityPhotoUrl ?? "",
+            doctor.Specialization ?? "General",
+            "10 years",
+            "4.5",
+            totalAppointments.ToString(),
+            "Cairo"
+        );
+
+        return Result.Succeed(new FlutterDoctorDetailsDataDto(
+            doctorDto,
+            new FlutterDoctorScheduleDataDto(weeklySchedule, dates)
+        ));
     }
 }

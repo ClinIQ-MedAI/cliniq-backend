@@ -20,6 +20,7 @@ public static class DbSeeder
 
         await SeedRolesAsync(roleManager, context);
         await SeedUsersAsync(userManager, context);
+        await SeedNewsAsync(context);
     }
 
     private static async Task SeedRolesAsync(RoleManager<ApplicationRole> roleManager, AppDbContext context)
@@ -229,6 +230,44 @@ public static class DbSeeder
             }
 
             await context.SaveChangesAsync();
+        }
+    }
+
+    private static async Task SeedNewsAsync(AppDbContext context)
+    {
+        if (!await context.HealthNews.AnyAsync())
+        {
+            var newsItems = new List<HealthNews>
+            {
+                new()
+                {
+                    Title = "Breakthrough in Heart Research",
+                    Image = "https://img.freepik.com/free-vector/heart-anatomy-concept-illustration_114360-1014.jpg",
+                    Description = "Scientists have discovered a new way to regenerate heart tissue using stem cells."
+                },
+                new()
+                {
+                    Title = "The Benefits of Daily Exercise",
+                    Image = "https://img.freepik.com/free-photo/flat-lay-health-still-life-with-copy-space_23-2148854031.jpg",
+                    Description = "Regular physical activity can significantly reduce the risk of chronic diseases."
+                },
+                new()
+                {
+                    Title = "New Mental Health Support App",
+                    Image = "https://img.freepik.com/free-vector/mental-health-concept-illustration_114360-1014.jpg",
+                    Description = "A revolutionary mobile application aims to provide 24/7 support for mental well-being."
+                },
+                new()
+                {
+                    Title = "Nutrition Tips for a Stronger Immune System",
+                    Image = "https://img.freepik.com/free-photo/healthy-food-background_23-2148854031.jpg",
+                    Description = "Learn which foods can help boost your body's natural defenses."
+                }
+            };
+
+            context.HealthNews.AddRange(newsItems);
+            await context.SaveChangesAsync();
+            Console.WriteLine("Health news seeded successfully.");
         }
     }
 
