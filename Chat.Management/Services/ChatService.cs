@@ -18,6 +18,7 @@ public class ChatService(
     public async Task<Result<IEnumerable<ConversationResponse>>> GetAllConversationsAsync(CancellationToken ct = default)
     {
         var conversations = await _context.Conversations
+            .OrderByDescending(c => c.LastMessageAt)
             .Select(c => new ConversationResponse(
                 c.Id,
                 c.DoctorId,
@@ -27,7 +28,6 @@ public class ChatService(
                 c.LastMessageAt,
                 c.Messages.Count
             ))
-            .OrderByDescending(c => c.LastMessageAt)
             .ToListAsync(ct);
 
         return Result.Succeed<IEnumerable<ConversationResponse>>(conversations);

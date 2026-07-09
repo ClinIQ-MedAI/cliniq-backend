@@ -24,6 +24,7 @@ public class ChatService(
     {
         var conversations = await _context.Conversations
             .Where(c => c.DoctorId == doctorId)
+            .OrderByDescending(c => c.LastMessageAt)
             .Select(c => new ConversationResponse(
                 c.Id,
                 c.PatientId,
@@ -31,7 +32,6 @@ public class ChatService(
                 c.LastMessageAt,
                 c.Messages.Count(m => m.Status != MessageStatus.READ && m.SenderType == MessageSenderType.PATIENT)
             ))
-            .OrderByDescending(c => c.LastMessageAt)
             .ToListAsync(ct);
 
         return Result.Succeed<IEnumerable<ConversationResponse>>(conversations);
