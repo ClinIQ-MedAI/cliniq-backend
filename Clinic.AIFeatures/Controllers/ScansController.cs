@@ -8,7 +8,7 @@ namespace Clinic.AIFeatures.Controllers;
 
 [Authorize]
 [ApiController]
-[Route("api/[controller]")]
+[Route("[controller]")]
 public class ScansController : ControllerBase
 {
     private readonly IScanService _scanService;
