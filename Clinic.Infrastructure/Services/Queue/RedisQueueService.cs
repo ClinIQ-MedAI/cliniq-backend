@@ -26,12 +26,12 @@ public class RedisQueueService : IQueueService
         var prefix = _settings.QueuePrefix;
         
         // Construct stream name like cliniq:jobs:bone
-        var streamName = $"{prefix}{(prefix.EndsWith(":") ? "" : ":")}jobs:{job.Modality.ToLowerInvariant()}";
+        var streamName = $"{prefix}{(prefix.EndsWith(":") ? "" : ":")}jobs:{job.Modality.ToString().ToLowerInvariant()}";
 
         var jobMessage = new JobMessage
         {
             JobId = job.Id,
-            Modality = job.Modality,
+            Modality = job.Modality.ToString().ToLowerInvariant(),
             ImageBase64 = job.ImageBase64,
             ImageUrl = job.ImageUrl,
             PatientId = job.PatientId,

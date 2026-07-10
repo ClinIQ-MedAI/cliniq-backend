@@ -73,4 +73,28 @@
   <data name="Validation.MaxBookingsRange" xml:space="preserve">
     <value>يجب أن يكون الحد الأقصى للحجوزات بين 1 و 100.</value>
   </data>
+  <data name="Validation.OptionsNotAllowed" xml:space="preserve">
+    <value>الخيارات مسموحة فقط لأنواع الفحوصات CHEST أو DENTAL_PHOTO.</value>
+  </data>
+  <data name="Validation.ImageRequired" xml:space="preserve">
+    <value>يجب توفير إما image_base64 أو image_url.</value>
+  </data>
+  <data name="Validation.PatientIdRequired" xml:space="preserve">
+    <value>معرف المريض (patient_id) مطلوب.</value>
+  </data>
+  <data name="Patient.NotFound" xml:space="preserve">
+    <value>ملف المريض المحدد غير موجود.</value>
+  </data>
+  <data name="Scan.NotFound" xml:space="preserve">
+    <value>الفحص ذو المعرف {0} غير موجود.</value>
+  </data>
+  <data name="Doctor.NotFound" xml:space="preserve">
+    <value>ملف الطبيب المحدد غير موجود.</value>
+  </data>
+  <data name="Prescription.NotFound" xml:space="preserve">
+    <value>الوصفة الطبية ذات المعرف {0} غير موجودة.</value>
+  </data>
+  <data name="Queue.PublishError" xml:space="preserve">
+    <value>فشل نشر وظيفة الفحص: {0}</value>
+  </data>
 </root>

@@ -1,7 +1,9 @@
+using Clinic.Infrastructure.Entities.Enums;
+
 namespace Clinic.AIFeatures.Contracts;
 
 public record UploadScanRequest(
-    string Modality,
+    AIModality Modality,
     string? ImageBase64,
     string? ImageUrl,
     string PatientId,
@@ -12,7 +14,7 @@ public record ScanResponse(
     int Id,
     string PatientId,
     string PatientName,
-    string Modality,
+    AIModality Modality,
     string? ScanUrl,
     string? ScanBase64,
     string? AIJobId,

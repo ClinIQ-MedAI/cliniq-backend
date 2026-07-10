@@ -2,6 +2,7 @@ using System.Text.Json;
 using Clinic.AIFeatures.Contracts;
 using Clinic.Infrastructure.Abstractions;
 using Clinic.Infrastructure.Entities;
+using Clinic.Infrastructure.Entities.Enums;
 using Clinic.Infrastructure.Persistence;
 using Clinic.Infrastructure.Services.Queue;
 using Clinic.Infrastructure.Services.Queue.Contracts;
@@ -9,6 +10,8 @@ using Clinic.Infrastructure.Settings;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Localization;
+using Clinic.Infrastructure.Localization;
 
 namespace Clinic.AIFeatures.Services;
 
@@ -19,19 +22,22 @@ public class PrescriptionService : IPrescriptionService
     private readonly IAIServiceClient _aiServiceClient;
     private readonly QueueSettings _queueSettings;
     private readonly ILogger<PrescriptionService> _logger;
+    private readonly IStringLocalizer<SharedResource> _localizer;
 
     public PrescriptionService(
         AppDbContext context,
         IQueueService queueService,
         IAIServiceClient aiServiceClient,
         IOptions<QueueSettings> queueSettings,
-        ILogger<PrescriptionService> logger)
+        ILogger<PrescriptionService> logger,
+        IStringLocalizer<SharedResource> localizer)
     {
         _context = context;
         _queueService = queueService;
         _aiServiceClient = aiServiceClient;
         _queueSettings = queueSettings.Value;
         _logger = logger;
+        _localizer = localizer;
     }
 
     public async Task<Result<ParsedPrescriptionResponse>> UploadPrescriptionAsync(UploadPrescriptionRequest request, CancellationToken cancellationToken = default)
@@ -41,10 +47,10 @@ public class PrescriptionService : IPrescriptionService
             .FirstOrDefaultAsync(p => p.Id == request.PatientId, cancellationToken);
         if (patient == null)
         {
-            return Result.Failure<ParsedPrescriptionResponse>(Error.NotFound("Patient.NotFound", "The specified patient profile was not found."));
+            return Result.Failure<ParsedPrescriptionResponse>(Error.NotFound("Patient.NotFound", _localizer["Patient.NotFound"]));
         }
 
-        var modality = "prescription";
+        var modality = AIModality.PRESCRIPTION;
         var jobId = Guid.NewGuid().ToString("N");
         
         var job = new AIJob
@@ -87,7 +93,7 @@ public class PrescriptionService : IPrescriptionService
                 job.Status = "Failed";
                 job.ErrorMessage = $"Failed to publish queue message: {ex.Message}";
                 await _context.SaveChangesAsync(cancellationToken);
-                return Result.Failure<ParsedPrescriptionResponse>(Error.BadRequest("Queue.PublishError", $"Failed to publish prescription job: {ex.Message}"));
+                return Result.Failure<ParsedPrescriptionResponse>(Error.BadRequest("Queue.PublishError", string.Format(_localizer["Queue.PublishError"], ex.Message)));
             }
         }
         else
@@ -95,14 +101,14 @@ public class PrescriptionService : IPrescriptionService
             var jobMessage = new JobMessage
             {
                 JobId = jobId,
-                Modality = modality,
+                Modality = modality.ToString().ToLowerInvariant(),
                 ImageBase64 = request.ImageBase64,
                 ImageUrl = request.ImageUrl,
                 PatientId = request.PatientId,
                 EnqueuedAt = job.CreatedAt.ToString("o")
             };
 
-            var result = await _aiServiceClient.SendPredictRequestAsync(modality, jobMessage, cancellationToken);
+            var result = await _aiServiceClient.SendPredictRequestAsync(modality.ToString().ToLowerInvariant(), jobMessage, cancellationToken);
             
             job.Status = result.Status;
             job.ResultJson = result.Result != null ? JsonSerializer.Serialize(result.Result) : null;
@@ -141,7 +147,7 @@ public class PrescriptionService : IPrescriptionService
 
         if (prescription == null)
         {
-            return Result.Failure<ParsedPrescriptionResponse>(Error.NotFound("Prescription.NotFound", $"Prescription with ID {prescriptionId} not found."));
+            return Result.Failure<ParsedPrescriptionResponse>(Error.NotFound("Prescription.NotFound", string.Format(_localizer["Prescription.NotFound"], prescriptionId)));
         }
 
         return Result.Succeed(MapToResponse(prescription, prescription.Patient.User, prescription.AIJob));
@@ -165,13 +171,13 @@ public class PrescriptionService : IPrescriptionService
         var prescription = await _context.ParsedPrescriptions.FindAsync(prescriptionId);
         if (prescription == null)
         {
-            return Result.Failure(Error.NotFound("Prescription.NotFound", $"Prescription with ID {prescriptionId} not found."));
+            return Result.Failure(Error.NotFound("Prescription.NotFound", string.Format(_localizer["Prescription.NotFound"], prescriptionId)));
         }
 
         var doctorExists = await _context.DoctorProfiles.AnyAsync(d => d.Id == request.DoctorId);
         if (!doctorExists)
         {
-            return Result.Failure(Error.NotFound("Doctor.NotFound", "The specified doctor profile was not found."));
+            return Result.Failure(Error.NotFound("Doctor.NotFound", _localizer["Doctor.NotFound"]));
         }
 
         prescription.DoctorId = request.DoctorId;

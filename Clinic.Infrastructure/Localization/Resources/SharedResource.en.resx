@@ -73,4 +73,28 @@
   <data name="Validation.MaxBookingsRange" xml:space="preserve">
     <value>Maximum bookings must be between 1 and 100.</value>
   </data>
+  <data name="Validation.OptionsNotAllowed" xml:space="preserve">
+    <value>Options are only allowed for CHEST or DENTAL_PHOTO modalities.</value>
+  </data>
+  <data name="Validation.ImageRequired" xml:space="preserve">
+    <value>Either image_base64 or image_url must be provided.</value>
+  </data>
+  <data name="Validation.PatientIdRequired" xml:space="preserve">
+    <value>patient_id is required.</value>
+  </data>
+  <data name="Patient.NotFound" xml:space="preserve">
+    <value>The specified patient profile was not found.</value>
+  </data>
+  <data name="Scan.NotFound" xml:space="preserve">
+    <value>Scan with ID {0} not found.</value>
+  </data>
+  <data name="Doctor.NotFound" xml:space="preserve">
+    <value>The specified doctor profile was not found.</value>
+  </data>
+  <data name="Prescription.NotFound" xml:space="preserve">
+    <value>Prescription with ID {0} not found.</value>
+  </data>
+  <data name="Queue.PublishError" xml:space="preserve">
+    <value>Failed to publish scan job: {0}</value>
+  </data>
 </root>

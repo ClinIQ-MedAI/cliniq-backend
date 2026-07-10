@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Clinic.Infrastructure.Entities;
+using Clinic.Infrastructure.Entities.Enums;
 using Clinic.Infrastructure.Persistence;
 using Clinic.Infrastructure.Services.Queue;
 using Clinic.Infrastructure.Services.Queue.Contracts;
@@ -8,6 +9,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Localization;
+using Clinic.Infrastructure.Localization;
 
 namespace Clinic.API.Controllers;
 
@@ -20,21 +23,24 @@ public class JobsController : ControllerBase
     private readonly IQueueService _queueService;
     private readonly IAIServiceClient _aiServiceClient;
     private readonly QueueSettings _queueSettings;
+    private readonly IStringLocalizer<SharedResource> _localizer;
 
     public JobsController(
         AppDbContext context,
         IQueueService queueService,
         IAIServiceClient aiServiceClient,
-        IOptions<QueueSettings> queueSettings)
+        IOptions<QueueSettings> queueSettings,
+        IStringLocalizer<SharedResource> localizer)
     {
         _context = context;
         _queueService = queueService;
         _aiServiceClient = aiServiceClient;
         _queueSettings = queueSettings.Value;
+        _localizer = localizer;
     }
 
     public record SubmitJobRequest(
-        string Modality,
+        AIModality Modality,
         string? ImageBase64,
         string? ImageUrl,
         string PatientId,
@@ -44,33 +50,26 @@ public class JobsController : ControllerBase
     [HttpPost("submit")]
     public async Task<IActionResult> SubmitJob([FromBody] SubmitJobRequest request, CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(request.Modality))
-        {
-            return BadRequest(new { Message = "Modality is required." });
-        }
-
-        var modality = request.Modality.ToLowerInvariant();
-        var validModalities = new[] { "bone", "dental_xray", "dental_photo", "chest", "prescription" };
-        if (!validModalities.Contains(modality))
-        {
-            return BadRequest(new { Message = $"Invalid modality '{request.Modality}'. Valid modalities are: {string.Join(", ", validModalities)}" });
-        }
-
         if (string.IsNullOrWhiteSpace(request.ImageBase64) && string.IsNullOrWhiteSpace(request.ImageUrl))
         {
-            return BadRequest(new { Message = "Either image_base64 or image_url must be provided." });
+            return BadRequest(new { Message = _localizer["Validation.ImageRequired"].Value });
         }
 
         if (string.IsNullOrWhiteSpace(request.PatientId))
         {
-            return BadRequest(new { Message = "patient_id is required." });
+            return BadRequest(new { Message = _localizer["Validation.PatientIdRequired"].Value });
+        }
+
+        if (request.Options != null && request.Modality != AIModality.CHEST && request.Modality != AIModality.DENTAL_PHOTO)
+        {
+            return BadRequest(new { Message = _localizer["Validation.OptionsNotAllowed"].Value });
         }
 
         var jobId = Guid.NewGuid().ToString("N");
         var job = new AIJob
         {
             Id = jobId,
-            Modality = modality,
+            Modality = request.Modality,
             PatientId = request.PatientId,
             Status = "Pending",
             ImageBase64 = request.ImageBase64,
@@ -105,7 +104,7 @@ public class JobsController : ControllerBase
             var jobMessage = new JobMessage
             {
                 JobId = jobId,
-                Modality = modality,
+                Modality = request.Modality.ToString().ToLowerInvariant(),
                 ImageBase64 = request.ImageBase64,
                 ImageUrl = request.ImageUrl,
                 PatientId = request.PatientId,
@@ -113,7 +112,7 @@ public class JobsController : ControllerBase
                 EnqueuedAt = job.CreatedAt.ToString("o")
             };
 
-            var result = await _aiServiceClient.SendPredictRequestAsync(modality, jobMessage, cancellationToken);
+            var result = await _aiServiceClient.SendPredictRequestAsync(request.Modality.ToString().ToLowerInvariant(), jobMessage, cancellationToken);
             
             job.Status = result.Status;
             job.ResultJson = result.Result != null ? JsonSerializer.Serialize(result.Result) : null;

@@ -13,6 +13,7 @@ public class PatientScanConfiguration : IEntityTypeConfiguration<PatientScan>
         builder.HasKey(s => s.Id);
 
         builder.Property(s => s.Modality)
+            .HasConversion<string>()
             .HasMaxLength(50)
             .IsRequired();
 

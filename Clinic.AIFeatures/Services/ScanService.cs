@@ -2,6 +2,7 @@ using System.Text.Json;
 using Clinic.AIFeatures.Contracts;
 using Clinic.Infrastructure.Abstractions;
 using Clinic.Infrastructure.Entities;
+using Clinic.Infrastructure.Entities.Enums;
 using Clinic.Infrastructure.Persistence;
 using Clinic.Infrastructure.Services.Queue;
 using Clinic.Infrastructure.Services.Queue.Contracts;
@@ -9,6 +10,8 @@ using Clinic.Infrastructure.Settings;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Localization;
+using Clinic.Infrastructure.Localization;
 
 namespace Clinic.AIFeatures.Services;
 
@@ -19,19 +22,22 @@ public class ScanService : IScanService
     private readonly IAIServiceClient _aiServiceClient;
     private readonly QueueSettings _queueSettings;
     private readonly ILogger<ScanService> _logger;
+    private readonly IStringLocalizer<SharedResource> _localizer;
 
     public ScanService(
         AppDbContext context,
         IQueueService queueService,
         IAIServiceClient aiServiceClient,
         IOptions<QueueSettings> queueSettings,
-        ILogger<ScanService> logger)
+        ILogger<ScanService> logger,
+        IStringLocalizer<SharedResource> localizer)
     {
         _context = context;
         _queueService = queueService;
         _aiServiceClient = aiServiceClient;
         _queueSettings = queueSettings.Value;
         _logger = logger;
+        _localizer = localizer;
     }
 
     public async Task<Result<ScanResponse>> UploadScanAsync(UploadScanRequest request, CancellationToken cancellationToken = default)
@@ -41,10 +47,16 @@ public class ScanService : IScanService
             .FirstOrDefaultAsync(p => p.Id == request.PatientId, cancellationToken);
         if (patient == null)
         {
-            return Result.Failure<ScanResponse>(Error.NotFound("Patient.NotFound", "The specified patient profile was not found."));
+            return Result.Failure<ScanResponse>(Error.NotFound("Patient.NotFound", _localizer["Patient.NotFound"]));
         }
 
-        var modality = request.Modality.ToLowerInvariant();
+        var modality = request.Modality;
+
+        if (request.Options != null && modality != AIModality.CHEST && modality != AIModality.DENTAL_PHOTO)
+        {
+            return Result.Failure<ScanResponse>(Error.BadRequest("Scan.OptionsNotAllowed", _localizer["Validation.OptionsNotAllowed"]));
+        }
+
         var jobId = Guid.NewGuid().ToString("N");
         
         var job = new AIJob
@@ -90,7 +102,7 @@ public class ScanService : IScanService
                 job.Status = "Failed";
                 job.ErrorMessage = $"Failed to publish queue message: {ex.Message}";
                 await _context.SaveChangesAsync(cancellationToken);
-                return Result.Failure<ScanResponse>(Error.BadRequest("Queue.PublishError", $"Failed to publish scan job: {ex.Message}"));
+                return Result.Failure<ScanResponse>(Error.BadRequest("Queue.PublishError", string.Format(_localizer["Queue.PublishError"], ex.Message)));
             }
         }
         else
@@ -98,7 +110,7 @@ public class ScanService : IScanService
             var jobMessage = new JobMessage
             {
                 JobId = jobId,
-                Modality = modality,
+                Modality = modality.ToString().ToLowerInvariant(),
                 ImageBase64 = request.ImageBase64,
                 ImageUrl = request.ImageUrl,
                 PatientId = request.PatientId,
@@ -106,7 +118,7 @@ public class ScanService : IScanService
                 EnqueuedAt = job.CreatedAt.ToString("o")
             };
 
-            var result = await _aiServiceClient.SendPredictRequestAsync(modality, jobMessage, cancellationToken);
+            var result = await _aiServiceClient.SendPredictRequestAsync(modality.ToString().ToLowerInvariant(), jobMessage, cancellationToken);
             
             job.Status = result.Status;
             job.ResultJson = result.Result != null ? JsonSerializer.Serialize(result.Result) : null;
@@ -140,7 +152,7 @@ public class ScanService : IScanService
 
         if (scan == null)
         {
-            return Result.Failure<ScanResponse>(Error.NotFound("Scan.NotFound", $"Scan with ID {scanId} not found."));
+            return Result.Failure<ScanResponse>(Error.NotFound("Scan.NotFound", string.Format(_localizer["Scan.NotFound"], scanId)));
         }
 
         return Result.Succeed(MapToResponse(scan, scan.Patient.User, scan.AIJob));
@@ -164,13 +176,13 @@ public class ScanService : IScanService
         var scan = await _context.PatientScans.FindAsync(scanId);
         if (scan == null)
         {
-            return Result.Failure(Error.NotFound("Scan.NotFound", $"Scan with ID {scanId} not found."));
+            return Result.Failure(Error.NotFound("Scan.NotFound", string.Format(_localizer["Scan.NotFound"], scanId)));
         }
 
         var doctorExists = await _context.DoctorProfiles.AnyAsync(d => d.Id == request.DoctorId);
         if (!doctorExists)
         {
-            return Result.Failure(Error.NotFound("Doctor.NotFound", "The specified doctor profile was not found."));
+            return Result.Failure(Error.NotFound("Doctor.NotFound", _localizer["Doctor.NotFound"]));
         }
 
         scan.DoctorId = request.DoctorId;

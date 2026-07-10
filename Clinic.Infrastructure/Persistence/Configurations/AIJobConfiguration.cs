@@ -17,6 +17,7 @@ public class AIJobConfiguration : IEntityTypeConfiguration<AIJob>
             .IsRequired();
 
         builder.Property(j => j.Modality)
+            .HasConversion<string>()
             .HasMaxLength(50)
             .IsRequired();
 

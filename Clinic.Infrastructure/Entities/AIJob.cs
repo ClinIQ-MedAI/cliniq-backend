@@ -1,11 +1,12 @@
 using Clinic.Infrastructure.Abstractions;
+using Clinic.Infrastructure.Entities.Enums;
 
 namespace Clinic.Infrastructure.Entities;
 
 public class AIJob : AuditableEntity
 {
     public string Id { get; set; } = string.Empty; // UUID hex string, generated on submission
-    public string Modality { get; set; } = string.Empty; // bone, dental_xray, chest, dental_photo, prescription
+    public AIModality Modality { get; set; }
     public string PatientId { get; set; } = string.Empty;
     public string Status { get; set; } = "Pending"; // Pending, Completed, Failed
 

@@ -1,4 +1,5 @@
 using Clinic.Infrastructure.Abstractions;
+using Clinic.Infrastructure.Entities.Enums;
 
 namespace Clinic.Infrastructure.Entities;
 
@@ -9,7 +10,7 @@ public class PatientScan : AuditableEntity
     public string PatientId { get; set; } = string.Empty;
     public PatientProfile Patient { get; set; } = null!;
     
-    public string Modality { get; set; } = string.Empty; // bone, chest, dental_xray, dental_photo
+    public AIModality Modality { get; set; }
     public string? ScanUrl { get; set; }
     public string? ScanBase64 { get; set; }
     
