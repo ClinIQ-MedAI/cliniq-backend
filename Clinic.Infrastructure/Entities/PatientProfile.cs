@@ -18,6 +18,8 @@ public class PatientProfile
     /// </summary>
     public PatientStatus Status { get; set; } = PatientStatus.ACTIVE;
 
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
     // Health survey fields
     public decimal? Height { get; set; }  // in cm
     public decimal? Weight { get; set; }  // in kg

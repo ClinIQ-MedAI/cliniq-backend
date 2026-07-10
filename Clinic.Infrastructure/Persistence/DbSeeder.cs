@@ -21,6 +21,7 @@ public static class DbSeeder
         await SeedRolesAsync(roleManager, context);
         await SeedUsersAsync(userManager, context);
         await SeedNewsAsync(context);
+        await SeedDashboardDataAsync(context, userManager);
     }
 
     private static async Task SeedRolesAsync(RoleManager<ApplicationRole> roleManager, AppDbContext context)
@@ -295,6 +296,161 @@ public static class DbSeeder
                 EmergencyContactName = "Emergency Contact",
                 EmergencyContactPhone = "9876543210"
             });
+            await context.SaveChangesAsync();
+        }
+    }
+
+    private static async Task SeedDashboardDataAsync(AppDbContext context, UserManager<ApplicationUser> userManager)
+    {
+        // 1. Seed Patients
+        var currentPatientCount = await context.PatientProfiles.CountAsync();
+        if (currentPatientCount < 47)
+        {
+            var today = DateTime.UtcNow;
+            var currentMonthStart = new DateTime(today.Year, today.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+            var lastMonthStart = currentMonthStart.AddMonths(-1);
+            var earlierDate = lastMonthStart.AddMonths(-2);
+
+            var currentMonthPatients = await context.PatientProfiles.CountAsync(p => p.CreatedAt >= currentMonthStart);
+            var lastMonthPatients = await context.PatientProfiles.CountAsync(p => p.CreatedAt >= lastMonthStart && p.CreatedAt < currentMonthStart);
+            var earlierPatients = currentPatientCount - currentMonthPatients - lastMonthPatients;
+
+            int targetCurrentMonth = 6;
+            int targetLastMonth = 5;
+            int targetEarlier = 36;
+
+            int toAddCurrentMonth = Math.Max(0, targetCurrentMonth - currentMonthPatients);
+            int toAddLastMonth = Math.Max(0, targetLastMonth - lastMonthPatients);
+            int toAddEarlier = Math.Max(0, targetEarlier - earlierPatients);
+
+            // Seed earlier patients
+            for (int i = 0; i < toAddEarlier; i++)
+            {
+                var email = $"patient.earlier.{i}@clinic.com";
+                var user = await CreateUserAsync(userManager, $"Earlier Patient {i}", email, "Password123!");
+                if (user != null && !await context.PatientProfiles.AnyAsync(p => p.Id == user.Id))
+                {
+                    context.PatientProfiles.Add(new PatientProfile
+                    {
+                        Id = user.Id,
+                        Status = PatientStatus.ACTIVE,
+                        BloodType = "A+",
+                        CreatedAt = earlierDate.AddDays(i % 28)
+                    });
+                }
+            }
+
+            // Seed last month patients (June)
+            for (int i = 0; i < toAddLastMonth; i++)
+            {
+                var email = $"patient.june.{i}@clinic.com";
+                var user = await CreateUserAsync(userManager, $"June Patient {i}", email, "Password123!");
+                if (user != null && !await context.PatientProfiles.AnyAsync(p => p.Id == user.Id))
+                {
+                    context.PatientProfiles.Add(new PatientProfile
+                    {
+                        Id = user.Id,
+                        Status = PatientStatus.ACTIVE,
+                        BloodType = "B+",
+                        CreatedAt = lastMonthStart.AddDays(i * 5)
+                    });
+                }
+            }
+
+            // Seed current month patients (July)
+            for (int i = 0; i < toAddCurrentMonth; i++)
+            {
+                var email = $"patient.july.{i}@clinic.com";
+                var user = await CreateUserAsync(userManager, $"July Patient {i}", email, "Password123!");
+                if (user != null && !await context.PatientProfiles.AnyAsync(p => p.Id == user.Id))
+                {
+                    context.PatientProfiles.Add(new PatientProfile
+                    {
+                        Id = user.Id,
+                        Status = PatientStatus.ACTIVE,
+                        BloodType = "O-",
+                        CreatedAt = currentMonthStart.AddDays(i * 3)
+                    });
+                }
+            }
+
+            await context.SaveChangesAsync();
+        }
+
+        // 2. Seed Bookings
+        if (!await context.Bookings.AnyAsync())
+        {
+            var doctor = await context.DoctorProfiles.FirstOrDefaultAsync(d => d.Status == DoctorStatus.ACTIVE);
+            if (doctor == null) return;
+
+            var patients = await context.PatientProfiles.Take(47).ToListAsync();
+            if (!patients.Any()) return;
+
+            var today = DateTime.UtcNow;
+            var currentMonthStart = new DateTime(today.Year, today.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+
+            var performance = new[]
+            {
+                new { MonthOffset = -5, Completed = 18, Canceled = 3 }, // Feb 2026
+                new { MonthOffset = -4, Completed = 22, Canceled = 2 }, // Mar 2026
+                new { MonthOffset = -3, Completed = 20, Canceled = 4 }, // Apr 2026
+                new { MonthOffset = -2, Completed = 25, Canceled = 1 }, // May 2026
+                new { MonthOffset = -1, Completed = 19, Canceled = 3 }, // Jun 2026
+                new { MonthOffset = 0,  Completed = 15, Canceled = 2 }  // Jul 2026
+            };
+
+            int bookingIndex = 0;
+            foreach (var perf in performance)
+            {
+                var monthStart = currentMonthStart.AddMonths(perf.MonthOffset);
+                var dateOnlyStart = DateOnly.FromDateTime(monthStart);
+
+                for (int day = 1; day <= Math.Max(perf.Completed, perf.Canceled); day++)
+                {
+                    var scheduleDate = dateOnlyStart.AddDays(day - 1);
+                    var schedule = await context.DoctorSchedules
+                        .FirstOrDefaultAsync(ds => ds.DoctorId == doctor.Id && ds.Date == scheduleDate);
+
+                    if (schedule == null)
+                    {
+                        schedule = new DoctorSchedule
+                        {
+                            DoctorId = doctor.Id,
+                            Date = scheduleDate,
+                            IsAvailable = true,
+                            BookingCount = 0
+                        };
+                        context.DoctorSchedules.Add(schedule);
+                    }
+
+                    if (day <= perf.Completed)
+                    {
+                        var patient = patients[bookingIndex % patients.Count];
+                        context.Bookings.Add(new Booking
+                        {
+                            PatientId = patient.Id,
+                            DoctorSchedule = schedule,
+                            Status = BookingStatus.COMPLETED
+                        });
+                        schedule.BookingCount++;
+                        bookingIndex++;
+                    }
+
+                    if (day <= perf.Canceled)
+                    {
+                        var patient = patients[bookingIndex % patients.Count];
+                        context.Bookings.Add(new Booking
+                        {
+                            PatientId = patient.Id,
+                            DoctorSchedule = schedule,
+                            Status = BookingStatus.CANCELLED
+                        });
+                        schedule.BookingCount++;
+                        bookingIndex++;
+                    }
+                }
+            }
+
             await context.SaveChangesAsync();
         }
     }

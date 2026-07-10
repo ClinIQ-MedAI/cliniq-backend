@@ -16,5 +16,8 @@ public class PatientProfileConfiguration : IEntityTypeConfiguration<PatientProfi
 
         builder.Property(p => p.Status)
             .HasConversion<string>();
+
+        builder.Property(p => p.CreatedAt)
+            .HasDefaultValueSql("GETUTCDATE()");
     }
 }
