@@ -81,7 +81,7 @@ public class JobsController : ControllerBase
         _context.AIJobs.Add(job);
         await _context.SaveChangesAsync(cancellationToken);
 
-        var queueBackend = _queueSettings.QueueBackend ?? Environment.GetEnvironmentVariable("QUEUE_BACKEND");
+        var queueBackend = Environment.GetEnvironmentVariable("QUEUE_BACKEND") ?? _queueSettings.QueueBackend;
         bool useQueue = string.Equals(queueBackend, "redis", StringComparison.OrdinalIgnoreCase);
 
         if (useQueue)

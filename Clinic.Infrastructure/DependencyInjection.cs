@@ -120,7 +120,7 @@ public static class DependencyInjection
         services.AddSingleton<IQueueService>(sp =>
         {
             var queueSettings = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<QueueSettings>>().Value;
-            var queueBackend = queueSettings.QueueBackend ?? Environment.GetEnvironmentVariable("QUEUE_BACKEND");
+            var queueBackend = Environment.GetEnvironmentVariable("QUEUE_BACKEND") ?? queueSettings.QueueBackend;
 
             if (string.Equals(queueBackend, "redis", StringComparison.OrdinalIgnoreCase))
             {
