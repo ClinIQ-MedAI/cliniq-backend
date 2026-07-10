@@ -23,4 +23,8 @@ public static class Permissions
     public const string GetChats = "Permissions.Chats.View";
 
     public const string SendNotifications = "Permissions.Notifications.Send";
+
+    public const string ViewDashboard = "Permissions.Dashboard.View";
+
+    public const string ManageContacts = "Permissions.Contacts.Manage";
 }

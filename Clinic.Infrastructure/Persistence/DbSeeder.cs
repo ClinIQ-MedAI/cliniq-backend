@@ -53,6 +53,8 @@ public static class DbSeeder
             "Permissions.Bookings.Update",
             "Permissions.Chats.View",
             "Permissions.Notifications.Send",
+            "Permissions.Dashboard.View",
+            "Permissions.Contacts.Manage",
         };
 
         var adminPermissions = new[]
@@ -70,6 +72,8 @@ public static class DbSeeder
             "Permissions.Bookings.Update",
             "Permissions.Chats.View",
             "Permissions.Notifications.Send",
+            "Permissions.Dashboard.View",
+            "Permissions.Contacts.Manage",
         };
 
         await EnsureRoleWithPermissionsAsync(roleManager, context, "SuperAdmin", superAdminPermissions, isDefault: true);

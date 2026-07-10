@@ -1,13 +1,12 @@
 using Clinic.Authentication.Authorization;
 using Contact.Management.Services;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Contact.Management.Controllers;
 
 [ApiController]
 [Route("admin/contact-us")]
-[Authorize(Policy = PolicyNames.Admin)]
+[HasPermission(Permissions.ManageContacts)]
 public class ContactController(
     IContactService contactService) : ControllerBase
 {

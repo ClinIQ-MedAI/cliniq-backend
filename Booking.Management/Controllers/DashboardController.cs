@@ -1,6 +1,5 @@
 using Clinic.Authentication.Authorization;
 using Clinic.Infrastructure.Persistence;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Globalization;
@@ -9,7 +8,7 @@ namespace Booking.Management.Controllers;
 
 [ApiController]
 [Route("admin/dashboard")]
-[Authorize(Policy = PolicyNames.Admin)]
+[HasPermission(Permissions.ViewDashboard)]
 public class DashboardController : ControllerBase
 {
     private readonly AppDbContext _dbContext;

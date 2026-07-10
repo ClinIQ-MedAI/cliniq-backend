@@ -95,11 +95,6 @@ public static class DependencyInjection
             // Pending doctor
             options.AddPolicy(PolicyNames.PendingDoctor, policy =>
                 policy.AddRequirements(new DoctorStatusRequirement(DoctorStatus.PENDING_VERIFICATION.ToString())));
-
-            // Any role = admin (patients/doctors have no role)
-            options.AddPolicy(PolicyNames.Admin, policy =>
-                policy.RequireAssertion(context =>
-                    context.User.HasClaim(c => c.Type == "roles")));
         });
 
         // Register authorization handlers
