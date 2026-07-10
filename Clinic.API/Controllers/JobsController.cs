@@ -13,7 +13,7 @@ namespace Clinic.API.Controllers;
 
 [Authorize]
 [ApiController]
-[Route("api/[controller]")]
+[Route("[controller]")]
 public class JobsController : ControllerBase
 {
     private readonly AppDbContext _context;
