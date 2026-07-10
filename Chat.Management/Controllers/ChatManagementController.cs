@@ -7,12 +7,12 @@ namespace Chat.Management.Controllers;
 
 [ApiController]
 [Route("admin/chat")]
-[Authorize(Policy = PolicyNames.Admin)]
-public class ChatController(IChatService chatService) : ControllerBase
+public class ChatManagementController(IChatService chatService) : ControllerBase
 {
     private readonly IChatService _chatService = chatService;
 
     [HttpGet("conversations")]
+    [HasPermission(Permissions.GetChats)]
     public async Task<IActionResult> GetAllConversations(CancellationToken ct)
     {
         var result = await _chatService.GetAllConversationsAsync(ct);
@@ -20,6 +20,7 @@ public class ChatController(IChatService chatService) : ControllerBase
     }
 
     [HttpGet("conversations/{conversationId:int}/messages")]
+    [HasPermission(Permissions.GetChats)]
     public async Task<IActionResult> GetMessages(int conversationId, CancellationToken ct)
     {
         var result = await _chatService.GetMessagesAsync(conversationId, ct);

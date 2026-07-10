@@ -7,13 +7,13 @@ namespace Notification.Management.Controllers;
 
 [ApiController]
 [Route("admin/notifications")]
-[Authorize(Policy = PolicyNames.Admin)]
-public class NotificationController(
+public class NotificationManagementController(
     Services.INotificationService notificationService) : ControllerBase
 {
     private readonly Services.INotificationService _notificationService = notificationService;
 
     [HttpPost("send")]
+    [HasPermission(Permissions.SendNotifications)]
     public async Task<IActionResult> Send([FromBody] SendNotificationRequest request)
     {
         var result = await _notificationService.SendToUsersAsync(request);

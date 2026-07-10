@@ -8,7 +8,7 @@ public record AvailabilityDto(
     DayOfWeek DayOfWeek,
     TimeSpan StartTime,
     TimeSpan EndTime,
-    [property: Range(1, 100, ErrorMessage = "Validation.MaxBookingsRange")] int MaxBookings
+    [Range(1, 100, ErrorMessage = "Validation.MaxBookingsRange")] int MaxBookings
 );
 
 public record SetAvailabilityRequest(

@@ -1,3 +1,4 @@
+using Clinic.Authentication.Authorization;
 using Clinic.Infrastructure.Abstractions;
 using Clinic.Infrastructure.Entities;
 using Clinic.Infrastructure.Entities.Enums;
@@ -10,7 +11,6 @@ namespace Booking.Management.Controllers;
 
 [ApiController]
 [Route("admin/bookings")]
-[Authorize(Roles = "Admin")]
 public class BookingManagementController : ControllerBase
 {
     private readonly AppDbContext _dbContext;
@@ -21,6 +21,7 @@ public class BookingManagementController : ControllerBase
     }
 
     [HttpGet]
+    [HasPermission(Permissions.GetBookings)]
     public async Task<IActionResult> GetAllBookings([FromQuery] int page = 1, [FromQuery] int pageSize = 10, CancellationToken cancellationToken = default)
     {
         var query = _dbContext.Bookings
@@ -51,6 +52,7 @@ public class BookingManagementController : ControllerBase
     }
 
     [HttpGet("{id}")]
+    [HasPermission(Permissions.GetBookings)]
     public async Task<IActionResult> GetBooking(int id, CancellationToken cancellationToken)
     {
         var booking = await _dbContext.Bookings
@@ -90,6 +92,7 @@ public class BookingManagementController : ControllerBase
     }
 
     [HttpPut("{id}/status")]
+    [HasPermission(Permissions.UpdateBookings)]
     public async Task<IActionResult> UpdateBookingStatus(int id, [FromBody] UpdateBookingStatusRequest request, CancellationToken cancellationToken)
     {
         var booking = await _dbContext.Bookings.FindAsync([id], cancellationToken);

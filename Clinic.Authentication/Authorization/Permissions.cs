@@ -16,4 +16,11 @@ public static class Permissions
     public const string CreateRoles = "Permissions.Roles.Create";
     public const string UpdateRoles = "Permissions.Roles.Update";
     public const string DeleteRoles = "Permissions.Roles.Delete";
+
+    public const string GetBookings = "Permissions.Bookings.View";
+    public const string UpdateBookings = "Permissions.Bookings.Update";
+
+    public const string GetChats = "Permissions.Chats.View";
+
+    public const string SendNotifications = "Permissions.Notifications.Send";
 }

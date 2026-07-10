@@ -3,9 +3,9 @@ using Doctor.Management.Services;
 
 namespace Doctor.Management.Controllers;
 
-[Route("admin/[controller]")]
+[Route("admin/doctors")]
 [ApiController]
-public class DoctorsController(IDoctorService doctorService) : ControllerBase
+public class DoctorManagementController(IDoctorService doctorService) : ControllerBase
 {
     private readonly IDoctorService _doctorService = doctorService;
 
