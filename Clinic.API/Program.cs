@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using HealthChecks.UI.Client;
 using StackExchange.Redis;
 using Clinic.Authentication;
+using Clinic.AIFeatures;
 using Patient.Profile;
 using Doctor.Profile;
 using Patient.Management;
@@ -49,7 +50,8 @@ builder.Services.AddControllers()
     .AddApplicationPart(typeof(Notification.User.DependencyInjection).Assembly)
     .AddApplicationPart(typeof(Notification.Management.DependencyInjection).Assembly)
     .AddApplicationPart(typeof(Contact.Public.DependencyInjection).Assembly)
-    .AddApplicationPart(typeof(Contact.Management.DependencyInjection).Assembly);
+    .AddApplicationPart(typeof(Contact.Management.DependencyInjection).Assembly)
+    .AddApplicationPart(typeof(Clinic.AIFeatures.DependencyInjection).Assembly);
 
 builder.Services.AddEndpointsApiExplorer();
 
@@ -134,6 +136,7 @@ builder.Services.AddNotificationUserModule();
 builder.Services.AddNotificationManagementModule();
 builder.Services.AddContactPublicModule();
 builder.Services.AddContactManagementModule();
+builder.Services.AddAIFeaturesModule();
 
 // SignalR
 builder.Services.AddSignalR();

@@ -32,6 +32,7 @@
     <ProjectReference Include="..\Notification.Management\Notification.Management.csproj" />
     <ProjectReference Include="..\Contact.Public\Contact.Public.csproj" />
     <ProjectReference Include="..\Contact.Management\Contact.Management.csproj" />
+    <ProjectReference Include="..\Clinic.AIFeatures\Clinic.AIFeatures.csproj" />
   </ItemGroup>
 
 </Project>

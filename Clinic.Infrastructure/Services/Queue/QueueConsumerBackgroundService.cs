@@ -10,6 +10,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using StackExchange.Redis;
+using Microsoft.EntityFrameworkCore;
 
 namespace Clinic.Infrastructure.Services.Queue;
 
@@ -163,6 +164,29 @@ public class QueueConsumerBackgroundService : BackgroundService
 
             await context.SaveChangesAsync();
             _logger.LogInformation("AI Job {JobId} updated successfully to status {Status}", job.Id, job.Status);
+
+            // Propagate updates to PatientScan if one matches the JobId
+            var scan = await context.PatientScans.FirstOrDefaultAsync(s => s.AIJobId == result.JobId);
+            if (scan != null)
+            {
+                scan.AIAnalysisResult = job.ResultJson;
+                scan.IsReviewed = false;
+                await context.SaveChangesAsync();
+                _logger.LogInformation("PatientScan linked to job {JobId} updated with AI analysis.", result.JobId);
+            }
+
+            // Propagate updates to ParsedPrescription if one matches the JobId
+            var prescription = await context.ParsedPrescriptions.FirstOrDefaultAsync(p => p.AIJobId == result.JobId);
+            if (prescription != null)
+            {
+                prescription.RawParsedText = job.ResultJson;
+                if (result.Result != null)
+                {
+                    prescription.MedicationsJson = ExtractMedicationsJson(result.Result);
+                }
+                await context.SaveChangesAsync();
+                _logger.LogInformation("ParsedPrescription linked to job {JobId} updated with parsed text.", result.JobId);
+            }
         }
         else
         {
@@ -171,5 +195,40 @@ public class QueueConsumerBackgroundService : BackgroundService
 
         // Push to clients via SignalR patient group
         await _hubContext.Clients.Group($"patient_{result.PatientId}").SendAsync("ReceiveJobResult", result);
+    }
+
+    private string? ExtractMedicationsJson(object resultObj)
+    {
+        if (resultObj == null) return null;
+
+        try
+        {
+            var jsonString = JsonSerializer.Serialize(resultObj);
+            using var doc = JsonDocument.Parse(jsonString);
+            var root = doc.RootElement;
+
+            if (root.TryGetProperty("medications", out var medsElement) && medsElement.ValueKind == JsonValueKind.Array)
+            {
+                return medsElement.GetRawText();
+            }
+            if (root.TryGetProperty("medicines", out var medsElement2) && medsElement2.ValueKind == JsonValueKind.Array)
+            {
+                return medsElement2.GetRawText();
+            }
+            if (root.TryGetProperty("medication", out var medsElement3) && medsElement3.ValueKind == JsonValueKind.Array)
+            {
+                return medsElement3.GetRawText();
+            }
+            if (root.ValueKind == JsonValueKind.Array)
+            {
+                return root.GetRawText();
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to extract medications from AI result.");
+        }
+
+        return null;
     }
 }
