@@ -38,7 +38,7 @@ builder.Services.AddControllers()
         options.DataAnnotationLocalizerProvider = (type, factory) =>
             factory.Create(typeof(Clinic.Infrastructure.Localization.SharedResource));
     })
-    .AddApplicationPart(typeof(Clinic.Authentication.Controllers.AuthController).Assembly)
+    .AddApplicationPart(typeof(Clinic.Authentication.Controllers.AuthenticationController).Assembly)
     .AddApplicationPart(typeof(Patient.Profile.DependencyInjection).Assembly)
     .AddApplicationPart(typeof(Doctor.Profile.DependencyInjection).Assembly)
     .AddApplicationPart(typeof(Patient.Management.DependencyInjection).Assembly)

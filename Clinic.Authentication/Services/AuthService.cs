@@ -21,7 +21,7 @@ public class AuthService(
     AppDbContext context,
     IJwtProvider jwtProvider,
     IOtpService otpService,
-    IPermissionService permissionService,
+    IAuthPermissionService permissionService,
     IEnumerable<ILoginStrategy> loginStrategies,
     IStringLocalizer<Messages> localizer) : IAuthService
 {
@@ -29,7 +29,7 @@ public class AuthService(
     private readonly AppDbContext _context = context;
     private readonly IJwtProvider _jwtProvider = jwtProvider;
     private readonly IOtpService _otpService = otpService;
-    private readonly IPermissionService _permissionService = permissionService;
+    private readonly IAuthPermissionService _permissionService = permissionService;
     private readonly IEnumerable<ILoginStrategy> _loginStrategies = loginStrategies;
     private readonly IStringLocalizer<Messages> _localizer = localizer;
 

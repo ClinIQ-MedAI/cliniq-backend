@@ -4,7 +4,7 @@ namespace Roles.Management.Services;
 
 public class RoleService(
     RoleManager<ApplicationRole> roleManager,
-    IPermissionService permissionService) : IRoleService
+    IAuthPermissionService permissionService) : IRoleService
 {
     public async Task<Result<List<RoleResponse>>> GetAllAsync(CancellationToken cancellationToken = default)
     {

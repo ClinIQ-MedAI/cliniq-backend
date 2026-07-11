@@ -107,7 +107,7 @@ public static class DependencyInjection
         services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
 
         // Register permission service
-        services.AddScoped<IPermissionService, PermissionService>();
+        services.AddScoped<IAuthPermissionService, AuthPermissionService>();
 
         // Register JWT provider
         services.AddScoped<IJwtProvider, JwtProvider>();
@@ -117,10 +117,10 @@ public static class DependencyInjection
         services.AddScoped<ILoginStrategy, OtpLoginStrategy>();
 
         // Register services
-        services.AddScoped<IRegistrationService, RegistrationService>();
-        services.AddScoped<IVerificationService, VerificationService>();
+        services.AddScoped<IAuthRegistrationService, AuthRegistrationService>();
+        services.AddScoped<IAuthVerificationService, AuthVerificationService>();
 
-        services.AddScoped<IPasswordService, PasswordService>();
+        services.AddScoped<IAuthPasswordService, AuthPasswordService>();
         services.AddScoped<IAuthService, AuthService>();
 
         return services;

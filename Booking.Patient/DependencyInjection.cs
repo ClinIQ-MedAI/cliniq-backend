@@ -7,8 +7,8 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddBookingPatientModule(this IServiceCollection services)
     {
-        services.AddScoped<IBookingService, BookingService>();
-        services.AddScoped<IHomeService, HomeService>();
+        services.AddScoped<IBookingPatientService, BookingPatientService>();
+        services.AddScoped<IBookingPatientHomeService, BookingPatientHomeService>();
         return services;
     }
 }

@@ -6,9 +6,9 @@ public class PermissionRequirement(string permission) : IAuthorizationRequiremen
 }
 
 public class PermissionHandler(
-    IPermissionService permissionService) : AuthorizationHandler<PermissionRequirement>
+    IAuthPermissionService permissionService) : AuthorizationHandler<PermissionRequirement>
 {
-    private readonly IPermissionService _permissionService = permissionService;
+    private readonly IAuthPermissionService _permissionService = permissionService;
 
     protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, PermissionRequirement requirement)
     {

@@ -7,7 +7,7 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddContactPublicModule(this IServiceCollection services)
     {
-        services.AddScoped<IContactService, ContactService>();
+        services.AddScoped<IContactPublicService, ContactPublicService>();
         return services;
     }
 }

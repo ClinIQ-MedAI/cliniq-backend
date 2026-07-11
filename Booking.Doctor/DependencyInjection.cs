@@ -7,7 +7,7 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddBookingDoctorModule(this IServiceCollection services)
     {
-        services.AddScoped<IScheduleService, ScheduleService>();
+        services.AddScoped<IBookingDoctorScheduleService, BookingDoctorScheduleService>();
         return services;
     }
 }

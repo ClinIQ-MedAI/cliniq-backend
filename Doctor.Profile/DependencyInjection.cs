@@ -14,7 +14,7 @@ public static class DependencyInjection
         IConfiguration configuration)
     {
         // Register Doctor-specific services
-        services.AddScoped<IUserService, UserService>();
+        services.AddScoped<IDoctorUserService, DoctorUserService>();
         services.AddScoped<DoctorRegistrationService>();
 
         // Register mapping configurations

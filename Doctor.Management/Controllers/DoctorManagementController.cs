@@ -88,7 +88,7 @@ public class DoctorManagementController(IDoctorService doctorService) : Controll
 
     [HttpPost("update-requests/{requestId}/reject")]
     [HasPermission(Permissions.UpdateDoctors)]
-    public async Task<IActionResult> RejectUpdateRequest([FromRoute] int requestId, [FromBody] RejectDoctorProfileUpdateRequestRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> RejectUpdateRequest([FromRoute] int requestId, [FromBody] RejectDoctorUpdateRequest request, CancellationToken cancellationToken)
     {
         var result = await _doctorService.RejectUpdateRequestAsync(requestId, request.Reason, cancellationToken);
         return result.IsSucceed ? NoContent() : result.ToProblem();
