@@ -29,8 +29,4 @@
     <PackageReference Include="SharpGrip.FluentValidation.AutoValidation.Mvc" Version="2.0.0" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Content Include="Templates\**" CopyToOutputDirectory="PreserveNewest" />
-  </ItemGroup>
-
 </Project>
