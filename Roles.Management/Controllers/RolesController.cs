@@ -1,9 +1,7 @@
-using Clinic.Authentication.Authorization;
-using Clinic.Authentication.Contracts.Roles;
-using Clinic.Authentication.Services;
-using Clinic.Infrastructure.Extensions;
+using System.Reflection;
+using Roles.Management.Services;
 
-namespace Clinic.Authentication.Controllers;
+namespace Roles.Management.Controllers;
 
 [Route("admin/[controller]")]
 [ApiController]
@@ -25,6 +23,19 @@ public class RolesController(IRoleService roleService) : ControllerBase
     {
         var result = await _roleService.GetByIdAsync(id);
         return result.IsSucceed ? Ok(result.Value) : result.ToProblem();
+    }
+
+    [HttpGet("permissions")]
+    [HasPermission(Permissions.ViewRoles)]
+    public IActionResult GetPermissions()
+    {
+        var permissions = typeof(Permissions)
+            .GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy)
+            .Where(f => f.FieldType == typeof(string))
+            .Select(f => (string)f.GetValue(null)!)
+            .ToArray();
+
+        return Ok(permissions);
     }
 
     [HttpPost("")]

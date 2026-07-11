@@ -1,7 +1,4 @@
-using Clinic.Authentication.Contracts.Roles;
-using Clinic.Infrastructure.Abstractions;
-
-namespace Clinic.Authentication.Services;
+namespace Roles.Management.Services;
 
 public interface IRoleService
 {

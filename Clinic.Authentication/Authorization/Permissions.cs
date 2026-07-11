@@ -17,6 +17,11 @@ public static class Permissions
     public const string UpdateRoles = "Permissions.Roles.Update";
     public const string DeleteRoles = "Permissions.Roles.Delete";
 
+    public const string GetAdmins = "Permissions.Admins.View";
+    public const string AddAdmins = "Permissions.Admins.Create";
+    public const string UpdateAdmins = "Permissions.Admins.Update";
+    public const string DeleteAdmins = "Permissions.Admins.Delete";
+
     public const string GetBookings = "Permissions.Bookings.View";
     public const string UpdateBookings = "Permissions.Bookings.Update";
 

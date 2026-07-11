@@ -1,4 +1,4 @@
-namespace Clinic.Authentication.Contracts.Roles;
+namespace Clinic.Infrastructure.Contracts.Roles;
 
 public record UpdateRoleRequest(
     string? Name,

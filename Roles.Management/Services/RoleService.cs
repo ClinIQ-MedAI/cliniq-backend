@@ -1,9 +1,6 @@
-using Clinic.Authentication.Authorization;
-using Clinic.Authentication.Contracts.Roles;
-using Clinic.Infrastructure.Abstractions;
 using Clinic.Infrastructure.Entities;
 
-namespace Clinic.Authentication.Services;
+namespace Roles.Management.Services;
 
 public class RoleService(
     RoleManager<ApplicationRole> roleManager,

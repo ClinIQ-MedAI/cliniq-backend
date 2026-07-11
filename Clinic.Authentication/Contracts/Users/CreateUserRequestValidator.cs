@@ -1,5 +1,6 @@
 using FluentValidation;
 using Clinic.Infrastructure.Abstractions.Consts;
+using Clinic.Infrastructure.Contracts.Users;
 
 namespace Clinic.Authentication.Contracts.Users;
 

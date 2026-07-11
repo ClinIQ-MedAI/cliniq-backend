@@ -21,6 +21,8 @@
     <ProjectReference Include="..\Patient.Profile\Patient.Profile.csproj" />
     <ProjectReference Include="..\Doctor.Profile\Doctor.Profile.csproj" />
     <ProjectReference Include="..\Doctor.Management\Doctor.Management.csproj" />
+    <ProjectReference Include="..\Admin.Management\Admin.Management.csproj" />
+    <ProjectReference Include="..\Roles.Management\Roles.Management.csproj" />
     <ProjectReference Include="..\Patient.Management\Patient.Management.csproj" />
     <ProjectReference Include="..\Booking.Management\Booking.Management.csproj" />
     <ProjectReference Include="..\Booking.Doctor\Booking.Doctor.csproj" />

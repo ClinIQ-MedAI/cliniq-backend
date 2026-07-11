@@ -123,9 +123,6 @@ public static class DependencyInjection
         services.AddScoped<IPasswordService, PasswordService>();
         services.AddScoped<IAuthService, AuthService>();
 
-        // Register role service
-        services.AddScoped<IRoleService, RoleService>();
-
         return services;
     }
 }

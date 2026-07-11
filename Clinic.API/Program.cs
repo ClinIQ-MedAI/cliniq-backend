@@ -10,6 +10,8 @@ using Patient.Profile;
 using Doctor.Profile;
 using Patient.Management;
 using Doctor.Management;
+using Admin.Management;
+using Roles.Management;
 using Booking.Management;
 using Booking.Doctor;
 using Booking.Patient;
@@ -47,6 +49,8 @@ builder.Services.AddControllers()
     .AddApplicationPart(typeof(Chat.Doctor.DependencyInjection).Assembly)
     .AddApplicationPart(typeof(Chat.Patient.DependencyInjection).Assembly)
     .AddApplicationPart(typeof(Chat.Management.DependencyInjection).Assembly)
+    .AddApplicationPart(typeof(Admin.Management.DependencyInjection).Assembly)
+    .AddApplicationPart(typeof(Roles.Management.DependencyInjection).Assembly)
     .AddApplicationPart(typeof(Notification.User.DependencyInjection).Assembly)
     .AddApplicationPart(typeof(Notification.Management.DependencyInjection).Assembly)
     .AddApplicationPart(typeof(Contact.Public.DependencyInjection).Assembly)
@@ -126,6 +130,8 @@ builder.Services.AddPatientProfileModule(builder.Configuration);
 builder.Services.AddDoctorProfileModule(builder.Configuration);
 builder.Services.AddPatientManagementModule();
 builder.Services.AddDoctorManagementModule();
+builder.Services.AddAdminManagementModule();
+builder.Services.AddRolesManagementModule();
 builder.Services.AddBookingManagementModule();
 builder.Services.AddBookingDoctorModule();
 builder.Services.AddBookingPatientModule();
