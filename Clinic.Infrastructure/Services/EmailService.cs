@@ -30,7 +30,7 @@ public class EmailService(IOptions<MailSettings> mailSettings, ILogger<EmailServ
         _logger.LogInformation("Sending Email To:{email}", email);
 
         smtp.Connect(_mailSettings.Host, _mailSettings.Port, SecureSocketOptions.StartTls);
-        smtp.Authenticate(_mailSettings.Mail, _mailSettings.Password);
+        smtp.Authenticate(_mailSettings.AuthenticationUserName, _mailSettings.Password);
         await smtp.SendAsync(message);
         smtp.Disconnect(true);
     }

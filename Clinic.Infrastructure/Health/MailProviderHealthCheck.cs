@@ -15,7 +15,7 @@ public class MailProviderHealthCheck(IOptions<MailSettings> mailSettings) : IHea
 		{
             using var smtp = new SmtpClient();
             smtp.Connect(_mailSettings.Host, _mailSettings.Port, SecureSocketOptions.StartTls, cancellationToken);
-            smtp.Authenticate(_mailSettings.Mail, _mailSettings.Password, cancellationToken);
+            smtp.Authenticate(_mailSettings.AuthenticationUserName, _mailSettings.Password, cancellationToken);
 
             return await Task.FromResult(HealthCheckResult.Healthy());
         }
