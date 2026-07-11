@@ -1,3 +1,5 @@
+using System.Security.Claims;
+using Clinic.Authentication.Authorization;
 using Clinic.Authentication.Contracts;
 using Clinic.Authentication.Services;
 using Clinic.Authentication.Localization;
@@ -19,12 +21,14 @@ public class AuthController(
     IAuthService authService,
     IVerificationService verificationService,
     IPasswordService passwordService,
+    IPermissionService permissionService,
     IStringLocalizer<Messages> localizer) : ControllerBase
 {
     private readonly IRegistrationService _registrationService = registrationService;
     private readonly IAuthService _authService = authService;
     private readonly IVerificationService _verificationService = verificationService;
     private readonly IPasswordService _passwordService = passwordService;
+    private readonly IPermissionService _permissionService = permissionService;
     private readonly IStringLocalizer<Messages> _localizer = localizer;
 
     /// <summary>
@@ -145,5 +149,13 @@ public class AuthController(
         return result.IsSucceed ?
         Ok(new { Message = _localizer["LoginOtpSent"].Value }) :
         result.ToProblem();
+    }
+
+    [HttpGet("permissions")]
+    [Authorize]
+    public async Task<IActionResult> GetPermissions()
+    {
+        var permissions = await _permissionService.GetPermissionsForUserAsync(User);
+        return Ok(permissions);
     }
 }

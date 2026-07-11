@@ -7,7 +7,7 @@ public record LoginResponse(
     UserInfo User,
     DoctorInfo? Doctor,
     PatientInfo? Patient,
-    List<string> Roles
+    AdminInfo? Admin
 );
 
 public record UserInfo(
@@ -40,4 +40,9 @@ public record PatientInfo(
     string? ChronicConditions,
     string? EmergencyContactName,
     string? EmergencyContactPhone
+);
+
+public record AdminInfo(
+    List<string> Roles,
+    List<string> Permissions
 );

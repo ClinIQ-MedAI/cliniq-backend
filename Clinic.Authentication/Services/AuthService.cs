@@ -1,3 +1,4 @@
+using Clinic.Authentication.Authorization;
 using Clinic.Authentication.Contracts;
 using Clinic.Authentication.Jwt;
 using Clinic.Authentication.Strategies;
@@ -20,6 +21,7 @@ public class AuthService(
     AppDbContext context,
     IJwtProvider jwtProvider,
     IOtpService otpService,
+    IPermissionService permissionService,
     IEnumerable<ILoginStrategy> loginStrategies,
     IStringLocalizer<Messages> localizer) : IAuthService
 {
@@ -27,6 +29,7 @@ public class AuthService(
     private readonly AppDbContext _context = context;
     private readonly IJwtProvider _jwtProvider = jwtProvider;
     private readonly IOtpService _otpService = otpService;
+    private readonly IPermissionService _permissionService = permissionService;
     private readonly IEnumerable<ILoginStrategy> _loginStrategies = loginStrategies;
     private readonly IStringLocalizer<Messages> _localizer = localizer;
 
@@ -87,9 +90,17 @@ public class AuthService(
         // Load roles
         var roles = (await _userManager.GetRolesAsync(user)).ToList();
 
+        // Load permissions
+        var permissions = (await _permissionService.GetPermissionsForUserAsync(
+            new ClaimsPrincipal(new ClaimsIdentity(new[] { new Claim(ClaimTypes.Name, user.Id) }
+                .Concat(roles.Select(r => new Claim(ClaimTypes.Role, r)))))))
+            .ToList();
+
         // Generate JWT token
         var (token, expiresAt) = await _jwtProvider.GenerateTokenAsync(user, patientStatus, doctorStatus);
         var refreshToken = _jwtProvider.GenerateRefreshToken();
+
+        AdminInfo? adminInfo = roles.Count > 0 ? new AdminInfo(roles, permissions) : null;
 
         var response = new LoginResponse(
             token,
@@ -107,7 +118,7 @@ public class AuthService(
             ),
             doctorProfile,
             patientProfile,
-            roles
+            adminInfo
         );
 
         return Result.Succeed(response);
