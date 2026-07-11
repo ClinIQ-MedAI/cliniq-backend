@@ -1,3 +1,5 @@
+using Clinic.Infrastructure.Contracts.Doctors;
+
 namespace Doctor.Profile.Controllers;
 
 [Route("doctor/me")]
@@ -25,6 +27,16 @@ public class ProfileController(IUserService userService) : ControllerBase
         await _userService.UpdateProfileAsync(userId, request);
 
         return NoContent();
+    }
+
+    [HttpPut("update-request")]
+    public async Task<IActionResult> SubmitUpdateRequest([FromBody] SubmitDoctorUpdateRequestRequest request, CancellationToken cancellationToken)
+    {
+        var userId = User.GetUserId()!;
+
+        var result = await _userService.SubmitUpdateRequestAsync(userId, request, cancellationToken);
+
+        return result.IsSucceed ? Ok(result.Value) : result.ToProblem();
     }
 
     [HttpPut("change-password")]

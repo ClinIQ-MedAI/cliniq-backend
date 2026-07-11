@@ -79,4 +79,13 @@
   <data name="UserNotFound" xml:space="preserve">
     <value>المستخدم غير موجود</value>
   </data>
+  <data name="UpdateRequestNotFound" xml:space="preserve">
+    <value>طلب التحديث غير موجود</value>
+  </data>
+  <data name="InvalidStatusApproveUpdate" xml:space="preserve">
+    <value>يمكن فقط قبول طلب التحديث المعلق</value>
+  </data>
+  <data name="InvalidStatusRejectUpdate" xml:space="preserve">
+    <value>يمكن فقط رفض طلب التحديث المعلق</value>
+  </data>
 </root>

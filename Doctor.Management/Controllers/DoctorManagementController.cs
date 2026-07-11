@@ -69,4 +69,28 @@ public class DoctorManagementController(IDoctorService doctorService) : Controll
         var result = await _doctorService.RejectAsync(id, request.Reason);
         return result.IsSucceed ? NoContent() : result.ToProblem();
     }
+
+    [HttpGet("update-requests")]
+    [HasPermission(Permissions.GetDoctors)]
+    public async Task<IActionResult> GetPendingUpdateRequests(CancellationToken cancellationToken)
+    {
+        var result = await _doctorService.GetPendingUpdateRequestsAsync(cancellationToken);
+        return Ok(result);
+    }
+
+    [HttpPost("update-requests/{requestId}/approve")]
+    [HasPermission(Permissions.UpdateDoctors)]
+    public async Task<IActionResult> ApproveUpdateRequest([FromRoute] int requestId, CancellationToken cancellationToken)
+    {
+        var result = await _doctorService.ApproveUpdateRequestAsync(requestId, cancellationToken);
+        return result.IsSucceed ? NoContent() : result.ToProblem();
+    }
+
+    [HttpPost("update-requests/{requestId}/reject")]
+    [HasPermission(Permissions.UpdateDoctors)]
+    public async Task<IActionResult> RejectUpdateRequest([FromRoute] int requestId, [FromBody] RejectDoctorProfileUpdateRequestRequest request, CancellationToken cancellationToken)
+    {
+        var result = await _doctorService.RejectUpdateRequestAsync(requestId, request.Reason, cancellationToken);
+        return result.IsSucceed ? NoContent() : result.ToProblem();
+    }
 }

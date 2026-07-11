@@ -1,3 +1,5 @@
+using Clinic.Infrastructure.Contracts.Doctors;
+
 namespace Doctor.Profile.Contracts;
 
 public record DoctorProfileResponse(
@@ -11,5 +13,6 @@ public record DoctorProfileResponse(
     string? PersonalIdentityPhotoUrl,
     string? MedicalLicenseUrl,
     string? RejectionReason,
-    string Status
+    string Status,
+    DoctorProfileUpdateRequestResponse? PendingUpdateRequest
 );

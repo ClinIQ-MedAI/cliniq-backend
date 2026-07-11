@@ -12,4 +12,7 @@ public interface IDoctorService
     Task<Result> Unlock(string id);
     Task<Result> ApproveAsync(string id);
     Task<Result> RejectAsync(string id, string reason);
+    Task<IEnumerable<DoctorProfileUpdateRequestResponse>> GetPendingUpdateRequestsAsync(CancellationToken cancellationToken = default);
+    Task<Result> ApproveUpdateRequestAsync(int requestId, CancellationToken cancellationToken = default);
+    Task<Result> RejectUpdateRequestAsync(int requestId, string reason, CancellationToken cancellationToken = default);
 }

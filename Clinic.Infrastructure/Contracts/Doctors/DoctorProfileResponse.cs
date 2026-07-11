@@ -1,6 +1,6 @@
 namespace Clinic.Infrastructure.Contracts.Doctors;
 
-public record DoctorProfileResponse(
+public record DoctorBasicInfoResponse(
     string Id,
     string FirstName,
     string LastName,

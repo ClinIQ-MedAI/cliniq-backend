@@ -219,4 +219,67 @@ public class DoctorService(
         await _context.SaveChangesAsync();
         return Result.Succeed();
     }
+
+    public async Task<IEnumerable<DoctorProfileUpdateRequestResponse>> GetPendingUpdateRequestsAsync(CancellationToken cancellationToken = default)
+    {
+        return await _context.DoctorProfileUpdateRequests
+            .Where(r => r.Status == DoctorProfileUpdateRequestStatus.PENDING)
+            .Select(r => new DoctorProfileUpdateRequestResponse(
+                r.Id,
+                r.DoctorId,
+                r.Status,
+                r.RejectionReason,
+                r.Specialization,
+                r.LicenseNumber,
+                r.LicenseExpiryDate,
+                r.PersonalIdentityPhotoUrl,
+                r.MedicalLicenseUrl,
+                r.CreatedAt
+            ))
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<Result> ApproveUpdateRequestAsync(int requestId, CancellationToken cancellationToken = default)
+    {
+        var updateRequest = await _context.DoctorProfileUpdateRequests
+            .Include(r => r.Doctor)
+            .FirstOrDefaultAsync(r => r.Id == requestId, cancellationToken);
+
+        if (updateRequest == null)
+            return Result.Failure(Error.BadRequest("Doctor.UpdateRequestNotFound", _localizer["UpdateRequestNotFound"]));
+
+        if (updateRequest.Status != DoctorProfileUpdateRequestStatus.PENDING)
+            return Result.Failure(Error.BadRequest("Doctor.InvalidStatus", _localizer["InvalidStatusApproveUpdate"]));
+
+        var doctorProfile = updateRequest.Doctor;
+
+        if (updateRequest.Specialization is not null) doctorProfile.Specialization = updateRequest.Specialization;
+        if (updateRequest.LicenseNumber is not null) doctorProfile.LicenseNumber = updateRequest.LicenseNumber;
+        if (updateRequest.LicenseExpiryDate.HasValue) doctorProfile.LicenseExpiryDate = updateRequest.LicenseExpiryDate;
+        if (updateRequest.PersonalIdentityPhotoUrl is not null) doctorProfile.PersonalIdentityPhotoUrl = updateRequest.PersonalIdentityPhotoUrl;
+        if (updateRequest.MedicalLicenseUrl is not null) doctorProfile.MedicalLicenseUrl = updateRequest.MedicalLicenseUrl;
+
+        updateRequest.Status = DoctorProfileUpdateRequestStatus.APPROVED;
+
+        await _context.SaveChangesAsync(cancellationToken);
+        return Result.Succeed();
+    }
+
+    public async Task<Result> RejectUpdateRequestAsync(int requestId, string reason, CancellationToken cancellationToken = default)
+    {
+        var updateRequest = await _context.DoctorProfileUpdateRequests
+            .FirstOrDefaultAsync(r => r.Id == requestId, cancellationToken);
+
+        if (updateRequest == null)
+            return Result.Failure(Error.BadRequest("Doctor.UpdateRequestNotFound", _localizer["UpdateRequestNotFound"]));
+
+        if (updateRequest.Status != DoctorProfileUpdateRequestStatus.PENDING)
+            return Result.Failure(Error.BadRequest("Doctor.InvalidStatus", _localizer["InvalidStatusRejectUpdate"]));
+
+        updateRequest.Status = DoctorProfileUpdateRequestStatus.REJECTED;
+        updateRequest.RejectionReason = reason;
+
+        await _context.SaveChangesAsync(cancellationToken);
+        return Result.Succeed();
+    }
 }

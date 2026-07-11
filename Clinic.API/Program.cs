@@ -190,6 +190,7 @@ app.MapGroup("api").MapControllers();
 app.MapHub<ChatHub>("/hubs/chat");
 app.MapHub<NotificationHub>("/hubs/notifications");
 app.MapHub<AIJobHub>("/hubs/jobs");
+app.MapHub<ChatbotHub>("/hubs/chatbot");
 
 // Map Health Checks endpoint
 app.MapHealthChecks("/health", new HealthCheckOptions

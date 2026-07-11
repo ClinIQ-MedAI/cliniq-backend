@@ -8,4 +8,7 @@ public class QueueSettings
     public string QueuePrefix { get; set; } = "cliniq";
     public string QueueGroup { get; set; } = "backend";
     public string QueueResultChannel { get; set; } = "cliniq:results";
+    public string ChatRequestChannel { get; set; } = "cliniq:chat:requests";
+    public string ChatResultChannel { get; set; } = "cliniq:chat:results";
+    public string ChatGroup { get; set; } = "backend";
 }

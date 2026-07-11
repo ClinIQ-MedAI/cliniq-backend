@@ -21,6 +21,7 @@ public class UserService(
             .FirstOrDefaultAsync();
 
         var response = new PatientProfileResponse(
+            userId,
             user!.Email!,
             user.UserName!,
             user.FirstName,
@@ -50,6 +51,23 @@ public class UserService(
         user.LastName = request.LastName;
 
         await _userManager.UpdateAsync(user);
+
+        var patientProfile = await _context.PatientProfiles.FindAsync([userId]);
+
+        if (patientProfile is not null)
+        {
+            if (request.Height.HasValue) patientProfile.Height = request.Height;
+            if (request.Weight.HasValue) patientProfile.Weight = request.Weight;
+            if (request.HasDiabetes.HasValue) patientProfile.HasDiabetes = request.HasDiabetes.Value;
+            if (request.HasPressureIssues.HasValue) patientProfile.HasPressureIssues = request.HasPressureIssues.Value;
+            if (request.BloodType is not null) patientProfile.BloodType = request.BloodType;
+            if (request.Allergies is not null) patientProfile.Allergies = request.Allergies;
+            if (request.ChronicConditions is not null) patientProfile.ChronicConditions = request.ChronicConditions;
+            if (request.EmergencyContactName is not null) patientProfile.EmergencyContactName = request.EmergencyContactName;
+            if (request.EmergencyContactPhone is not null) patientProfile.EmergencyContactPhone = request.EmergencyContactPhone;
+
+            await _context.SaveChangesAsync();
+        }
 
         return Result.Succeed();
     }

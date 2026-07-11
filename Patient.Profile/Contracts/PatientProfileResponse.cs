@@ -1,6 +1,7 @@
 namespace Patient.Profile.Contracts;
 
 public record PatientProfileResponse(
+    string Id,
     string Email,
     string UserName,
     string FirstName,

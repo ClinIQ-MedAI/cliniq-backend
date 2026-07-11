@@ -133,6 +133,7 @@ public static class DependencyInjection
         });
 
         services.AddHostedService<QueueConsumerBackgroundService>();
+        services.AddHostedService<ChatbotConsumerBackgroundService>();
 
         services.AddLocalization();
 
