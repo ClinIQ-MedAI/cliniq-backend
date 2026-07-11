@@ -1,4 +1,5 @@
 using Clinic.Authentication.Authorization;
+using Contact.Management.Contracts;
 using Contact.Management.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -23,6 +24,13 @@ public class ContactController(
     public async Task<IActionResult> MarkAsRead(int id)
     {
         var result = await _contactService.MarkAsReadAsync(id);
+        return result.IsSucceed ? NoContent() : result.ToProblem();
+    }
+
+    [HttpPost("{id}/reply")]
+    public async Task<IActionResult> Reply(int id, AdminContactReplyRequest request)
+    {
+        var result = await _contactService.ReplyAsync(request with { ContactId = id });
         return result.IsSucceed ? NoContent() : result.ToProblem();
     }
 }
