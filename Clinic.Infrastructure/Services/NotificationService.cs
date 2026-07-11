@@ -16,13 +16,15 @@ public class NotificationService(
     UserManager<ApplicationUser> userManager,
     IEmailSender emailSender,
     IHttpContextAccessor httpContextAccessor,
-    IHubContext<NotificationHub> hubContext) : INotificationService
+    IHubContext<NotificationHub> hubContext,
+    IEmailBodyBuilder emailBodyBuilder) : INotificationService
 {
     private readonly AppDbContext _context = context;
     private readonly UserManager<ApplicationUser> _userManager = userManager;
     private readonly IEmailSender _emailSender = emailSender;
     private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
     private readonly IHubContext<NotificationHub> _hubContext = hubContext;
+    private readonly IEmailBodyBuilder _emailBodyBuilder = emailBodyBuilder;
 
     public async Task SendNewPollsNotification(int? pollId = null)
     {
@@ -37,7 +39,7 @@ public class NotificationService(
                 { "{{name}}", user.FirstName }
             };
 
-            var body = EmailBodyBuilder.GenerateEmailBody("PollNotification", placeHolders, AppContext.BaseDirectory);
+            var body = _emailBodyBuilder.GenerateEmailBody("PollNotification", placeHolders);
 
             await _emailSender.SendEmailAsync(user.Email!, "Clinic API: Notification", body);
         }

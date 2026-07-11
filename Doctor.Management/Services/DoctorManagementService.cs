@@ -8,10 +8,10 @@ using Microsoft.Extensions.Localization;
 
 namespace Doctor.Management.Services;
 
-public class DoctorService(
+public class DoctorManagementService(
     UserManager<ApplicationUser> userManager,
     AppDbContext context,
-    IStringLocalizer<Messages> localizer) : IDoctorService
+    IStringLocalizer<Messages> localizer) : IDoctorManagementService
 {
     private readonly UserManager<ApplicationUser> _userManager = userManager;
     private readonly AppDbContext _context = context;

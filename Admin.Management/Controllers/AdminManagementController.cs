@@ -4,9 +4,9 @@ namespace Admin.Management.Controllers;
 
 [Route("admin/admins")]
 [ApiController]
-public class AdminManagementController(IAdminService adminService) : ControllerBase
+public class AdminManagementController(IAdminManagementService adminService) : ControllerBase
 {
-    private readonly IAdminService _adminService = adminService;
+    private readonly IAdminManagementService _adminService = adminService;
 
     [HttpGet("")]
     [HasPermission(Permissions.GetAdmins)]

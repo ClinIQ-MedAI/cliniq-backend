@@ -4,12 +4,14 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 
 namespace Admin.Management.Services;
 
-public class AdminService(
+public class AdminManagementService(
     UserManager<ApplicationUser> userManager,
-    IEmailSender emailSender) : IAdminService
+    IEmailSender emailSender,
+    IEmailBodyBuilder emailBodyBuilder) : IAdminManagementService
 {
     private readonly UserManager<ApplicationUser> _userManager = userManager;
     private readonly IEmailSender _emailSender = emailSender;
+    private readonly IEmailBodyBuilder _emailBodyBuilder = emailBodyBuilder;
 
     public async Task<Result<List<AdminResponse>>> GetAllAsync(CancellationToken cancellationToken = default)
     {
@@ -74,7 +76,7 @@ public class AdminService(
             { "{{password}}", request.Password }
         };
 
-        var emailBody = EmailBodyBuilder.GenerateEmailBody("AdminCredentials", placeHolders, AppContext.BaseDirectory);
+        var emailBody = _emailBodyBuilder.GenerateEmailBody("AdminCredentials", placeHolders);
         await _emailSender.SendEmailAsync(request.Email, "Clinic API: Your Admin Account", emailBody);
 
         var roles = (await _userManager.GetRolesAsync(user)).ToArray();

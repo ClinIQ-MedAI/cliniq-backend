@@ -2,9 +2,9 @@ using Clinic.Infrastructure.Entities;
 
 namespace Roles.Management.Services;
 
-public class RoleService(
+public class RolesManagementService(
     RoleManager<ApplicationRole> roleManager,
-    IAuthPermissionService permissionService) : IRoleService
+    IAuthPermissionService permissionService) : IRolesManagementService
 {
     public async Task<Result<List<RoleResponse>>> GetAllAsync(CancellationToken cancellationToken = default)
     {

@@ -8,7 +8,7 @@ public static class DependencyInjection
     public static IServiceCollection AddAdminManagementModule(
         this IServiceCollection services)
     {
-        services.AddScoped<IAdminService, AdminService>();
+        services.AddScoped<IAdminManagementService, AdminManagementService>();
 
         return services;
     }

@@ -2,7 +2,7 @@ using Clinic.Infrastructure.Contracts.Patients;
 
 namespace Patient.Management.Services;
 
-public interface IPatientService
+public interface IPatientManagementService
 {
     Task<IEnumerable<PatientResponse>> GetAllAsync(CancellationToken cancellationToken = default);
     Task<Result<PatientResponse>> GetAsync(string id);

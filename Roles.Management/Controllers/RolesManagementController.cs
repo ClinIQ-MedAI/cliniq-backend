@@ -5,9 +5,9 @@ namespace Roles.Management.Controllers;
 
 [Route("admin/roles")]
 [ApiController]
-public class RolesManagementController(IRoleService roleService) : ControllerBase
+public class RolesManagementController(IRolesManagementService roleService) : ControllerBase
 {
-    private readonly IRoleService _roleService = roleService;
+    private readonly IRolesManagementService _roleService = roleService;
 
     [HttpGet("")]
     [HasPermission(Permissions.ViewRoles)]

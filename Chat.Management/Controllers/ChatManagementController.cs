@@ -7,9 +7,9 @@ namespace Chat.Management.Controllers;
 
 [ApiController]
 [Route("admin/chat")]
-public class ChatManagementController(IChatService chatService) : ControllerBase
+public class ChatManagementController(IChatManagementService chatService) : ControllerBase
 {
-    private readonly IChatService _chatService = chatService;
+    private readonly IChatManagementService _chatService = chatService;
 
     [HttpGet("conversations")]
     [HasPermission(Permissions.GetChats)]

@@ -5,9 +5,9 @@ namespace Doctor.Management.Controllers;
 
 [Route("admin/doctors")]
 [ApiController]
-public class DoctorManagementController(IDoctorService doctorService) : ControllerBase
+public class DoctorManagementController(IDoctorManagementService doctorService) : ControllerBase
 {
-    private readonly IDoctorService _doctorService = doctorService;
+    private readonly IDoctorManagementService _doctorService = doctorService;
 
     [HttpGet("")]
     [HasPermission(Permissions.GetDoctors)]

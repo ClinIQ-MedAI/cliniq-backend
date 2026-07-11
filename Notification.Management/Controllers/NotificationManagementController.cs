@@ -8,9 +8,9 @@ namespace Notification.Management.Controllers;
 [ApiController]
 [Route("admin/notifications")]
 public class NotificationManagementController(
-    Services.INotificationService notificationService) : ControllerBase
+    Services.INotificationManagementService notificationService) : ControllerBase
 {
-    private readonly Services.INotificationService _notificationService = notificationService;
+    private readonly Services.INotificationManagementService _notificationService = notificationService;
 
     [HttpPost("send")]
     [HasPermission(Permissions.SendNotifications)]

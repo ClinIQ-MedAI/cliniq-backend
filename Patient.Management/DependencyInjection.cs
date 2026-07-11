@@ -10,7 +10,7 @@ public static class DependencyInjection
     public static IServiceCollection AddPatientManagementModule(
         this IServiceCollection services)
     {
-        services.AddScoped<IPatientService, PatientService>();
+        services.AddScoped<IPatientManagementService, PatientManagementService>();
 
         return services;
     }

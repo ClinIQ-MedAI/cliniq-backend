@@ -7,7 +7,7 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddChatManagementModule(this IServiceCollection services)
     {
-        services.AddScoped<IChatService, ChatService>();
+        services.AddScoped<IChatManagementService, ChatManagementService>();
         return services;
     }
 }

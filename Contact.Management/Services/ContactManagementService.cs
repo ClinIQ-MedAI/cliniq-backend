@@ -4,12 +4,14 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 
 namespace Contact.Management.Services;
 
-public class ContactService(
+public class ContactManagementService(
     AppDbContext context,
-    IEmailSender emailSender) : IContactService
+    IEmailSender emailSender,
+    IEmailBodyBuilder emailBodyBuilder) : IContactManagementService
 {
     private readonly AppDbContext _context = context;
     private readonly IEmailSender _emailSender = emailSender;
+    private readonly IEmailBodyBuilder _emailBodyBuilder = emailBodyBuilder;
 
     public async Task<Result<List<ContactMessageResponse>>> GetAllAsync()
     {
@@ -53,12 +55,12 @@ public class ContactService(
         if (message is null)
             return Result.Failure(Error.NotFound("ContactMessage.NotFound", "Contact message not found"));
 
-        var htmlBody = EmailBodyBuilder.GenerateEmailBody("ContactReply", new Dictionary<string, string>
+        var htmlBody = _emailBodyBuilder.GenerateEmailBody("ContactReply", new Dictionary<string, string>
         {
             { "{{name}}", message.Name },
             { "{{subject}}", message.Subject },
             { "{{reply}}", request.Reply }
-        }, AppContext.BaseDirectory);
+        });
 
         await _emailSender.SendEmailAsync(message.Email, $"Re: {message.Subject}", htmlBody);
 

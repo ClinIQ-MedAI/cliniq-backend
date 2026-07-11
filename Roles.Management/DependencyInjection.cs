@@ -8,7 +8,7 @@ public static class DependencyInjection
     public static IServiceCollection AddRolesManagementModule(
         this IServiceCollection services)
     {
-        services.AddScoped<IRoleService, RoleService>();
+        services.AddScoped<IRolesManagementService, RolesManagementService>();
 
         return services;
     }

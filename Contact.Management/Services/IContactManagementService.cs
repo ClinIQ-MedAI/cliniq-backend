@@ -3,7 +3,7 @@ using Contact.Management.Contracts;
 
 namespace Contact.Management.Services;
 
-public interface IContactService
+public interface IContactManagementService
 {
     Task<Result<List<ContactMessageResponse>>> GetAllAsync();
     Task<Result> MarkAsReadAsync(int contactId);

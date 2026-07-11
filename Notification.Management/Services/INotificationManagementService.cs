@@ -3,7 +3,7 @@ using Notification.Management.Contracts;
 
 namespace Notification.Management.Services;
 
-public interface INotificationService
+public interface INotificationManagementService
 {
     Task<Result> SendToUsersAsync(SendNotificationRequest request);
 }

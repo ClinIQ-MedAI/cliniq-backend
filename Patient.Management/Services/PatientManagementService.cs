@@ -7,10 +7,10 @@ using Microsoft.Extensions.Localization;
 
 namespace Patient.Management.Services;
 
-public class PatientService(
+public class PatientManagementService(
     UserManager<ApplicationUser> userManager,
     AppDbContext context,
-    IStringLocalizer<Messages> localizer) : IPatientService
+    IStringLocalizer<Messages> localizer) : IPatientManagementService
 {
     private readonly UserManager<ApplicationUser> _userManager = userManager;
     private readonly AppDbContext _context = context;

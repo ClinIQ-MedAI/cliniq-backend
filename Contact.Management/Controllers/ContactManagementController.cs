@@ -9,9 +9,9 @@ namespace Contact.Management.Controllers;
 [Route("admin/contact-us")]
 [HasPermission(Permissions.ManageContacts)]
 public class ContactManagementController(
-    IContactService contactService) : ControllerBase
+    IContactManagementService contactService) : ControllerBase
 {
-    private readonly IContactService _contactService = contactService;
+    private readonly IContactManagementService _contactService = contactService;
 
     [HttpGet]
     public async Task<IActionResult> GetAll()

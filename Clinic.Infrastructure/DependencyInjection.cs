@@ -1,4 +1,5 @@
 using Clinic.Infrastructure.Entities;
+using Clinic.Infrastructure.Helpers;
 using Clinic.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
@@ -108,6 +109,7 @@ public static class DependencyInjection
         // Email Configuration
         services.Configure<MailSettings>(configuration.GetSection(nameof(MailSettings)));
         services.AddTransient<IEmailSender, EmailService>();
+        services.AddScoped<IEmailBodyBuilder, EmailBodyBuilder>();
 
         services.AddScoped<INotificationService, NotificationService>();
 

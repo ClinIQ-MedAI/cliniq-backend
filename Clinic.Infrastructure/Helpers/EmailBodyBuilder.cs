@@ -1,13 +1,19 @@
+using Microsoft.AspNetCore.Hosting;
+
 namespace Clinic.Infrastructure.Helpers;
 
-public static class EmailBodyBuilder
+public interface IEmailBodyBuilder
 {
-    public static string GenerateEmailBody(string template, Dictionary<string,string> templateModel, string baseDir)
+    string GenerateEmailBody(string template, Dictionary<string, string> templateModel);
+}
+
+public class EmailBodyBuilder(IWebHostEnvironment env) : IEmailBodyBuilder
+{
+    public string GenerateEmailBody(string template, Dictionary<string, string> templateModel)
     {
-        var templatePath = Path.Combine(baseDir, "Templates", $"{template}.html");
-        var streamReader = new StreamReader(templatePath);
+        var templatePath = Path.Combine(env.ContentRootPath, "Templates", $"{template}.html");
+        using var streamReader = new StreamReader(templatePath);
         var body = streamReader.ReadToEnd();
-        streamReader.Close();
 
         foreach (var item in templateModel)
             body = body.Replace(item.Key, item.Value);

@@ -10,7 +10,7 @@ public static class DependencyInjection
     public static IServiceCollection AddDoctorManagementModule(
         this IServiceCollection services)
     {
-        services.AddScoped<IDoctorService, DoctorService>();
+        services.AddScoped<IDoctorManagementService, DoctorManagementService>();
 
         // Register mapping if any (currently manual or using Adapt)
 

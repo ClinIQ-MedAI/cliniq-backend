@@ -1,6 +1,6 @@
 namespace Roles.Management.Services;
 
-public interface IRoleService
+public interface IRolesManagementService
 {
     Task<Result<List<RoleResponse>>> GetAllAsync(CancellationToken cancellationToken = default);
     Task<Result<RoleResponse>> GetByIdAsync(string id);

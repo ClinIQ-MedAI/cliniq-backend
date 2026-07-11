@@ -8,9 +8,9 @@ using Microsoft.Extensions.Localization;
 
 namespace Chat.Management.Services;
 
-public class ChatService(
+public class ChatManagementService(
     AppDbContext context,
-    IStringLocalizer<Messages> localizer) : IChatService
+    IStringLocalizer<Messages> localizer) : IChatManagementService
 {
     private readonly AppDbContext _context = context;
     private readonly IStringLocalizer<Messages> _localizer = localizer;

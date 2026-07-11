@@ -3,9 +3,9 @@ using Notification.Management.Contracts;
 
 namespace Notification.Management.Services;
 
-public class NotificationService(
+public class NotificationManagementService(
     AppDbContext context,
-    global::Clinic.Infrastructure.Services.INotificationService notificationService) : INotificationService
+    global::Clinic.Infrastructure.Services.INotificationService notificationService) : INotificationManagementService
 {
     private readonly AppDbContext _context = context;
     private readonly global::Clinic.Infrastructure.Services.INotificationService _notificationService = notificationService;

@@ -1,6 +1,6 @@
 namespace Admin.Management.Services;
 
-public interface IAdminService
+public interface IAdminManagementService
 {
     Task<Result<List<AdminResponse>>> GetAllAsync(CancellationToken cancellationToken = default);
     Task<Result<AdminResponse>> GetByIdAsync(string id);
