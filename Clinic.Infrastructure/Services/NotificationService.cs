@@ -37,7 +37,7 @@ public class NotificationService(
                 { "{{name}}", user.FirstName }
             };
 
-            var body = EmailBodyBuilder.GenerateEmailBody("PollNotification", placeHolders);
+            var body = EmailBodyBuilder.GenerateEmailBody("PollNotification", placeHolders, AppContext.BaseDirectory);
 
             await _emailSender.SendEmailAsync(user.Email!, "Clinic API: Notification", body);
         }

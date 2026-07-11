@@ -74,7 +74,7 @@ public class AdminService(
             { "{{password}}", request.Password }
         };
 
-        var emailBody = EmailBodyBuilder.GenerateEmailBody("AdminCredentials", placeHolders);
+        var emailBody = EmailBodyBuilder.GenerateEmailBody("AdminCredentials", placeHolders, AppContext.BaseDirectory);
         await _emailSender.SendEmailAsync(request.Email, "Clinic API: Your Admin Account", emailBody);
 
         var roles = (await _userManager.GetRolesAsync(user)).ToArray();

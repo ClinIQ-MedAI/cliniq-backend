@@ -58,7 +58,7 @@ public class ContactService(
             { "{{name}}", message.Name },
             { "{{subject}}", message.Subject },
             { "{{reply}}", request.Reply }
-        });
+        }, AppContext.BaseDirectory);
 
         await _emailSender.SendEmailAsync(message.Email, $"Re: {message.Subject}", htmlBody);
 

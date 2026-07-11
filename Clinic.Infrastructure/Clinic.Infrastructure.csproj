@@ -32,4 +32,8 @@
     <PackageReference Include="System.Linq.Dynamic.Core" Version="1.7.2" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="Templates\**" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

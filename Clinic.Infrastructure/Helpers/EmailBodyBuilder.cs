@@ -2,9 +2,9 @@ namespace Clinic.Infrastructure.Helpers;
 
 public static class EmailBodyBuilder
 {
-    public static string GenerateEmailBody(string template, Dictionary<string,string> templateModel )
+    public static string GenerateEmailBody(string template, Dictionary<string,string> templateModel, string baseDir)
     {
-        var templatePath = $"{Directory.GetCurrentDirectory()}/Templates/{template}.html";
+        var templatePath = Path.Combine(baseDir, "Templates", $"{template}.html");
         var streamReader = new StreamReader(templatePath);
         var body = streamReader.ReadToEnd();
         streamReader.Close();
