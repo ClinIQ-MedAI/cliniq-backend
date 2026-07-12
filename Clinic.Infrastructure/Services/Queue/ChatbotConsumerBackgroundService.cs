@@ -77,6 +77,10 @@ public class ChatbotConsumerBackgroundService : BackgroundService
             _logger.LogError(ex, "Error creating Chatbot Redis Stream consumer group.");
         }
 
+        int currentDelayMs = 1000;
+        const int minDelayMs = 1000;
+        const int maxDelayMs = 10000; // 10 seconds max idle delay
+
         while (!stoppingToken.IsCancellationRequested)
         {
             try
@@ -91,9 +95,13 @@ public class ChatbotConsumerBackgroundService : BackgroundService
 
                 if (entries == null || entries.Length == 0)
                 {
-                    await Task.Delay(1000, stoppingToken);
+                    await Task.Delay(currentDelayMs, stoppingToken);
+                    currentDelayMs = Math.Min(currentDelayMs * 2, maxDelayMs);
                     continue;
                 }
+
+                // Reset delay on processing message
+                currentDelayMs = minDelayMs;
 
                 foreach (var entry in entries)
                 {
