@@ -45,4 +45,20 @@ public class RedisQueueService : IQueueService
         // Add to Redis Stream
         await db.StreamAddAsync(streamName, new NameValueEntry[] { new("data", json) });
     }
+
+    public async Task PublishChatAsync(string chatId, string patientId, string message, string languagePreference)
+    {
+        var db = _redis.GetDatabase();
+        var payload = new
+        {
+            chat_id = chatId,
+            message = message,
+            patient_id = patientId,
+            language_preference = languagePreference,
+            enqueued_at = DateTime.UtcNow.ToString("o")
+        };
+
+        var json = JsonSerializer.Serialize(payload);
+        await db.StreamAddAsync(_settings.ChatRequestChannel, new NameValueEntry[] { new("data", json) });
+    }
 }

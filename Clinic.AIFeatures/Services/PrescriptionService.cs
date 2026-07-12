@@ -78,8 +78,7 @@ public class PrescriptionService : IPrescriptionService
         _context.ParsedPrescriptions.Add(prescription);
         await _context.SaveChangesAsync(cancellationToken);
 
-        var queueBackend = Environment.GetEnvironmentVariable("QUEUE_BACKEND") ?? _queueSettings.QueueBackend;
-        bool useQueue = string.Equals(queueBackend, "redis", StringComparison.OrdinalIgnoreCase);
+        bool useQueue = _queueService.IsEnabled;
 
         if (useQueue)
         {

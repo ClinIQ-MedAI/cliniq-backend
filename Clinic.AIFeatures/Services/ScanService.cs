@@ -87,8 +87,7 @@ public class ScanService : IScanService
         _context.PatientScans.Add(scan);
         await _context.SaveChangesAsync(cancellationToken);
 
-        var queueBackend = Environment.GetEnvironmentVariable("QUEUE_BACKEND") ?? _queueSettings.QueueBackend;
-        bool useQueue = string.Equals(queueBackend, "redis", StringComparison.OrdinalIgnoreCase);
+        bool useQueue = _queueService.IsEnabled;
 
         if (useQueue)
         {

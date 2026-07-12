@@ -3,26 +3,26 @@ using Clinic.AIFeatures.Contracts;
 using Clinic.Infrastructure.Abstractions;
 using Clinic.Infrastructure.Entities;
 using Clinic.Infrastructure.Persistence;
+using Clinic.Infrastructure.Services.Queue;
 using Clinic.Infrastructure.Settings;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using StackExchange.Redis;
 
 namespace Clinic.AIFeatures.Services;
 
 public class ChatbotService : IChatbotService
 {
     private readonly AppDbContext _context;
-    private readonly IConnectionMultiplexer _redis;
+    private readonly IQueueService _queueService;
     private readonly QueueSettings _queueSettings;
 
     public ChatbotService(
         AppDbContext context,
-        IConnectionMultiplexer redis,
+        IQueueService queueService,
         IOptions<QueueSettings> queueSettings)
     {
         _context = context;
-        _redis = redis;
+        _queueService = queueService;
         _queueSettings = queueSettings.Value;
     }
 
@@ -52,21 +52,10 @@ public class ChatbotService : IChatbotService
         _context.AIChatMessages.Add(chatMessage);
         await _context.SaveChangesAsync(ct);
 
-        // 3. Publish to Redis stream if queue backend is redis
-        if (string.Equals(_queueSettings.QueueBackend, "redis", StringComparison.OrdinalIgnoreCase))
+        // 3. Publish to queue if enabled
+        if (_queueService.IsEnabled)
         {
-            var db = _redis.GetDatabase();
-            var payload = new
-            {
-                chat_id = chatId,
-                message = request.Message,
-                patient_id = patientId,
-                language_preference = request.LanguagePreference,
-                enqueued_at = DateTime.UtcNow.ToString("o")
-            };
-
-            var json = JsonSerializer.Serialize(payload);
-            await db.StreamAddAsync(_queueSettings.ChatRequestChannel, new NameValueEntry[] { new("data", json) });
+            await _queueService.PublishChatAsync(chatId, patientId, request.Message, request.LanguagePreference);
         }
 
         return Result.Succeed(MapToResponse(chatMessage));

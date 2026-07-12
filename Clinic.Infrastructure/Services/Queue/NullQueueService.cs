@@ -8,6 +8,11 @@ public class NullQueueService : IQueueService
 
     public Task PublishJobAsync(AIJob job)
     {
-        throw new InvalidOperationException("Queue is disabled. Please configure QueueSettings:QueueBackend to 'redis' to use asynchronous queues.");
+        throw new InvalidOperationException("Queue is disabled. Please configure QueueSettings:QueueBackend to 'redis' or 'qstash' to use asynchronous queues.");
+    }
+
+    public Task PublishChatAsync(string chatId, string patientId, string message, string languagePreference)
+    {
+        throw new InvalidOperationException("Queue is disabled. Please configure QueueSettings:QueueBackend to 'redis' or 'qstash' to use asynchronous queues.");
     }
 }

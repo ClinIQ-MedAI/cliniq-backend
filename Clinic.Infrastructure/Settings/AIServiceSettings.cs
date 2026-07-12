@@ -9,6 +9,7 @@ public class AIServiceSettings
     public string ChestUrl { get; set; } = "http://localhost:8003";
     public string DentalPhotoUrl { get; set; } = "http://localhost:8004";
     public string PrescriptionUrl { get; set; } = "http://localhost:8005";
+    public string ChatbotUrl { get; set; } = "http://localhost:8006";
 
     public string GetServiceUrl(string modality)
     {

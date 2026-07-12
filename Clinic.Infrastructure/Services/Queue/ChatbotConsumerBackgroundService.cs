@@ -1,8 +1,6 @@
 using System.Text.Json;
-using System.Text.Json.Serialization;
-using Clinic.Infrastructure.Entities;
 using Clinic.Infrastructure.Hubs;
-using Clinic.Infrastructure.Persistence;
+using Clinic.Infrastructure.Services.Queue.Contracts;
 using Clinic.Infrastructure.Settings;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,7 +8,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using StackExchange.Redis;
-using Microsoft.EntityFrameworkCore;
 
 namespace Clinic.Infrastructure.Services.Queue;
 
@@ -19,18 +16,18 @@ public class ChatbotConsumerBackgroundService : BackgroundService
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<ChatbotConsumerBackgroundService> _logger;
     private readonly QueueSettings _settings;
-    private readonly IHubContext<ChatbotHub> _hubContext;
+    private readonly IQueueResultProcessor _resultProcessor;
 
     public ChatbotConsumerBackgroundService(
         IServiceProvider serviceProvider,
         ILogger<ChatbotConsumerBackgroundService> logger,
         IOptions<QueueSettings> settings,
-        IHubContext<ChatbotHub> hubContext)
+        IQueueResultProcessor resultProcessor)
     {
         _serviceProvider = serviceProvider;
         _logger = logger;
         _settings = settings.Value;
-        _hubContext = hubContext;
+        _resultProcessor = resultProcessor;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -108,10 +105,10 @@ public class ChatbotConsumerBackgroundService : BackgroundService
 
                     try
                     {
-                        var reply = JsonSerializer.Deserialize<ChatReplyPayload>(json);
+                        var reply = JsonSerializer.Deserialize<ChatReplyMessage>(json);
                         if (reply != null)
                         {
-                            await ProcessChatReplyAsync(reply);
+                            await _resultProcessor.ProcessChatReplyAsync(reply);
                         }
                     }
                     catch (Exception ex)
@@ -128,81 +125,5 @@ public class ChatbotConsumerBackgroundService : BackgroundService
                 await Task.Delay(5000, stoppingToken);
             }
         }
-    }
-
-    private async Task ProcessChatReplyAsync(ChatReplyPayload reply)
-    {
-        using var scope = _serviceProvider.CreateScope();
-        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-
-        var dbMessage = await context.AIChatMessages.FirstOrDefaultAsync(m => m.ChatId == reply.ChatId);
-        if (dbMessage != null)
-        {
-            var status = reply.Status;
-            if (!string.IsNullOrEmpty(status))
-            {
-                status = char.ToUpper(status[0]) + status.Substring(1).ToLowerInvariant();
-            }
-
-            dbMessage.Status = status;
-            dbMessage.Reply = reply.Reply;
-            dbMessage.QueryType = reply.QueryType;
-            dbMessage.ShowUpload = reply.ShowUpload;
-            dbMessage.Error = reply.Error;
-            dbMessage.Worker = reply.Worker;
-            dbMessage.DurationMs = reply.DurationMs;
-
-            if (DateTime.TryParse(reply.FinishedAt, out var finishedAt))
-            {
-                dbMessage.FinishedAt = finishedAt;
-            }
-            else
-            {
-                dbMessage.FinishedAt = DateTime.UtcNow;
-            }
-
-            await context.SaveChangesAsync();
-            _logger.LogInformation("Chat message {ChatId} updated successfully to status {Status}", reply.ChatId, dbMessage.Status);
-
-            // Push to patient via SignalR
-            await _hubContext.Clients.Group($"patient_{reply.PatientId}").SendAsync("ReceiveChatbotReply", reply);
-        }
-        else
-        {
-            _logger.LogWarning("Received reply for unknown Chat ID: {ChatId}", reply.ChatId);
-        }
-    }
-
-    private class ChatReplyPayload
-    {
-        [JsonPropertyName("chat_id")]
-        public string ChatId { get; set; } = string.Empty;
-
-        [JsonPropertyName("status")]
-        public string Status { get; set; } = string.Empty;
-
-        [JsonPropertyName("reply")]
-        public string? Reply { get; set; }
-
-        [JsonPropertyName("query_type")]
-        public string? QueryType { get; set; }
-
-        [JsonPropertyName("show_upload")]
-        public bool ShowUpload { get; set; }
-
-        [JsonPropertyName("patient_id")]
-        public string PatientId { get; set; } = string.Empty;
-
-        [JsonPropertyName("error")]
-        public string? Error { get; set; }
-
-        [JsonPropertyName("worker")]
-        public string? Worker { get; set; }
-
-        [JsonPropertyName("duration_ms")]
-        public double? DurationMs { get; set; }
-
-        [JsonPropertyName("finished_at")]
-        public string? FinishedAt { get; set; }
     }
 }

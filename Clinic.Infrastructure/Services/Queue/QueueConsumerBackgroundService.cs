@@ -19,18 +19,18 @@ public class QueueConsumerBackgroundService : BackgroundService
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<QueueConsumerBackgroundService> _logger;
     private readonly QueueSettings _settings;
-    private readonly IHubContext<AIJobHub> _hubContext;
+    private readonly IQueueResultProcessor _resultProcessor;
 
     public QueueConsumerBackgroundService(
         IServiceProvider serviceProvider,
         ILogger<QueueConsumerBackgroundService> logger,
         IOptions<QueueSettings> settings,
-        IHubContext<AIJobHub> hubContext)
+        IQueueResultProcessor resultProcessor)
     {
         _serviceProvider = serviceProvider;
         _logger = logger;
         _settings = settings.Value;
-        _hubContext = hubContext;
+        _resultProcessor = resultProcessor;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -113,7 +113,7 @@ public class QueueConsumerBackgroundService : BackgroundService
                         var result = JsonSerializer.Deserialize<ResultMessage>(json);
                         if (result != null)
                         {
-                            await ProcessResultMessageAsync(result);
+                            await _resultProcessor.ProcessJobResultAsync(result);
                         }
                     }
                     catch (Exception ex)
@@ -131,104 +131,5 @@ public class QueueConsumerBackgroundService : BackgroundService
                 await Task.Delay(5000, stoppingToken); // Backoff on error
             }
         }
-    }
-
-    private async Task ProcessResultMessageAsync(ResultMessage result)
-    {
-        using var scope = _serviceProvider.CreateScope();
-        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-
-        var job = await context.AIJobs.FindAsync(result.JobId);
-        if (job != null)
-        {
-            var status = result.Status;
-            if (!string.IsNullOrEmpty(status))
-            {
-                status = char.ToUpper(status[0]) + status.Substring(1).ToLowerInvariant();
-            }
-
-            job.Status = status;
-            job.ResultJson = result.Result != null ? JsonSerializer.Serialize(result.Result) : null;
-            job.ErrorMessage = result.Error;
-            job.Worker = result.Worker;
-            job.DurationMs = result.DurationMs;
-            
-            if (DateTime.TryParse(result.FinishedAt, out var finishedAt))
-            {
-                job.FinishedAt = finishedAt;
-            }
-            else
-            {
-                job.FinishedAt = DateTime.UtcNow;
-            }
-
-            await context.SaveChangesAsync();
-            _logger.LogInformation("AI Job {JobId} updated successfully to status {Status}", job.Id, job.Status);
-
-            // Propagate updates to PatientScan if one matches the JobId
-            var scan = await context.PatientScans.FirstOrDefaultAsync(s => s.AIJobId == result.JobId);
-            if (scan != null)
-            {
-                scan.AIAnalysisResult = job.ResultJson;
-                scan.IsReviewed = false;
-                await context.SaveChangesAsync();
-                _logger.LogInformation("PatientScan linked to job {JobId} updated with AI analysis.", result.JobId);
-            }
-
-            // Propagate updates to ParsedPrescription if one matches the JobId
-            var prescription = await context.ParsedPrescriptions.FirstOrDefaultAsync(p => p.AIJobId == result.JobId);
-            if (prescription != null)
-            {
-                prescription.RawParsedText = job.ResultJson;
-                if (result.Result != null)
-                {
-                    prescription.MedicationsJson = ExtractMedicationsJson(result.Result);
-                }
-                await context.SaveChangesAsync();
-                _logger.LogInformation("ParsedPrescription linked to job {JobId} updated with parsed text.", result.JobId);
-            }
-        }
-        else
-        {
-            _logger.LogWarning("Received result for unknown Job ID: {JobId}", result.JobId);
-        }
-
-        // Push to clients via SignalR patient group
-        await _hubContext.Clients.Group($"patient_{result.PatientId}").SendAsync("ReceiveJobResult", result);
-    }
-
-    private string? ExtractMedicationsJson(object resultObj)
-    {
-        if (resultObj == null) return null;
-
-        try
-        {
-            var jsonString = JsonSerializer.Serialize(resultObj);
-            using var doc = JsonDocument.Parse(jsonString);
-            var root = doc.RootElement;
-
-            if (root.TryGetProperty("medications", out var medsElement) && medsElement.ValueKind == JsonValueKind.Array)
-            {
-                return medsElement.GetRawText();
-            }
-            if (root.TryGetProperty("medicines", out var medsElement2) && medsElement2.ValueKind == JsonValueKind.Array)
-            {
-                return medsElement2.GetRawText();
-            }
-            if (root.TryGetProperty("medication", out var medsElement3) && medsElement3.ValueKind == JsonValueKind.Array)
-            {
-                return medsElement3.GetRawText();
-            }
-            if (root.ValueKind == JsonValueKind.Array)
-            {
-                return root.GetRawText();
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Failed to extract medications from AI result.");
-        }
-
-        return null;
     }
 }

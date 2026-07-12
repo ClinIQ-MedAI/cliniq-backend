@@ -118,17 +118,25 @@ public static class DependencyInjection
         services.Configure<AIServiceSettings>(configuration.GetSection(AIServiceSettings.SectionName));
 
         services.AddHttpClient<IAIServiceClient, AIServiceClient>();
+        services.AddHttpClient<QStashQueueService>();
+
+        services.AddSingleton<IQueueResultProcessor, QueueResultProcessor>();
+        services.AddSingleton<IQStashSignatureVerifier, QStashSignatureVerifier>();
 
         services.AddSingleton<IQueueService>(sp =>
         {
             var queueSettings = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<QueueSettings>>().Value;
-            var queueBackend = Environment.GetEnvironmentVariable("QUEUE_BACKEND") ?? queueSettings.QueueBackend;
+            var queueBackend = queueSettings.QueueBackend;
 
             if (string.Equals(queueBackend, "redis", StringComparison.OrdinalIgnoreCase))
             {
                 var redis = sp.GetRequiredService<IConnectionMultiplexer>();
                 var options = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<QueueSettings>>();
                 return new RedisQueueService(redis, options);
+            }
+            else if (string.Equals(queueBackend, "qstash", StringComparison.OrdinalIgnoreCase))
+            {
+                return sp.GetRequiredService<QStashQueueService>();
             }
 
             return new NullQueueService();
