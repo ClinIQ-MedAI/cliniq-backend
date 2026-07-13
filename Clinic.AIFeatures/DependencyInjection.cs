@@ -8,7 +8,6 @@ public static class DependencyInjection
     public static IServiceCollection AddAIFeaturesModule(this IServiceCollection services)
     {
         services.AddScoped<IScanService, ScanService>();
-        services.AddScoped<IPrescriptionService, PrescriptionService>();
         services.AddScoped<IChatbotService, ChatbotService>();
         return services;
     }

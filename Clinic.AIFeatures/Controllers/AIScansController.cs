@@ -45,4 +45,11 @@ public class AIScansController : ControllerBase
         var result = await _scanService.ReviewScanAsync(id, request);
         return result.IsSucceed ? NoContent() : result.ToProblem();
     }
+
+    [HttpPost("{id:int}/confirm")]
+    public async Task<IActionResult> Confirm([FromRoute] int id, [FromBody] ConfirmScanRequest request)
+    {
+        var result = await _scanService.ConfirmScanAsync(id, request);
+        return result.IsSucceed ? NoContent() : result.ToProblem();
+    }
 }

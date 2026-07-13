@@ -32,3 +32,9 @@ public record ReviewScanRequest(
     string DoctorId,
     string DoctorNotes
 );
+
+public record ConfirmScanRequest(
+    string DoctorId,
+    object? Medications,
+    string? DoctorNotes
+);

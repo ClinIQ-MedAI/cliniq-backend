@@ -9,4 +9,5 @@ public interface IScanService
     Task<Result<ScanResponse>> GetScanAsync(int scanId);
     Task<IEnumerable<ScanResponse>> GetPatientScansAsync(string patientId);
     Task<Result> ReviewScanAsync(int scanId, ReviewScanRequest request);
+    Task<Result> ConfirmScanAsync(int scanId, ConfirmScanRequest request);
 }

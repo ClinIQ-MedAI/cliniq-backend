@@ -28,7 +28,6 @@ public class AppDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, 
     public DbSet<HealthNews> HealthNews => Set<HealthNews>();
     public DbSet<AIJob> AIJobs => Set<AIJob>();
     public DbSet<PatientScan> PatientScans => Set<PatientScan>();
-    public DbSet<ParsedPrescription> ParsedPrescriptions => Set<ParsedPrescription>();
     public DbSet<AIChatMessage> AIChatMessages => Set<AIChatMessage>();
     public DbSet<DoctorProfileUpdateRequest> DoctorProfileUpdateRequests => Set<DoctorProfileUpdateRequest>();
 

@@ -193,6 +193,34 @@ public class ScanService : IScanService
         return Result.Succeed();
     }
 
+    public async Task<Result> ConfirmScanAsync(int scanId, ConfirmScanRequest request)
+    {
+        var scan = await _context.PatientScans.FindAsync(scanId);
+        if (scan == null)
+        {
+            return Result.Failure(Error.NotFound("Scan.NotFound", string.Format(_localizer["Scan.NotFound"], scanId)));
+        }
+
+        var doctorExists = await _context.DoctorProfiles.AnyAsync(d => d.Id == request.DoctorId);
+        if (!doctorExists)
+        {
+            return Result.Failure(Error.NotFound("Doctor.NotFound", _localizer["Doctor.NotFound"]));
+        }
+
+        scan.DoctorId = request.DoctorId;
+        scan.DoctorNotes = request.DoctorNotes;
+        scan.DoctorReviewDate = DateTime.UtcNow;
+        scan.IsReviewed = true;
+
+        if (request.Medications != null)
+        {
+            scan.AIAnalysisResult = JsonSerializer.Serialize(request.Medications);
+        }
+
+        await _context.SaveChangesAsync();
+        return Result.Succeed();
+    }
+
     private static ScanResponse MapToResponse(PatientScan scan, ApplicationUser patientUser, AIJob? job)
     {
         object? aiResult = null;

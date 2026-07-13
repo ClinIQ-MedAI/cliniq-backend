@@ -70,19 +70,6 @@ public class QueueResultProcessor : IQueueResultProcessor
                 await context.SaveChangesAsync();
                 _logger.LogInformation("PatientScan linked to job {JobId} updated with AI analysis.", result.JobId);
             }
-
-            // Propagate updates to ParsedPrescription if one matches the JobId
-            var prescription = await context.ParsedPrescriptions.FirstOrDefaultAsync(p => p.AIJobId == result.JobId);
-            if (prescription != null)
-            {
-                prescription.RawParsedText = job.ResultJson;
-                if (result.Result != null)
-                {
-                    prescription.MedicationsJson = ExtractMedicationsJson(result.Result);
-                }
-                await context.SaveChangesAsync();
-                _logger.LogInformation("ParsedPrescription linked to job {JobId} updated with parsed text.", result.JobId);
-            }
         }
         else
         {
@@ -136,38 +123,4 @@ public class QueueResultProcessor : IQueueResultProcessor
         }
     }
 
-    private string? ExtractMedicationsJson(object resultObj)
-    {
-        if (resultObj == null) return null;
-
-        try
-        {
-            var jsonString = JsonSerializer.Serialize(resultObj);
-            using var doc = JsonDocument.Parse(jsonString);
-            var root = doc.RootElement;
-
-            if (root.TryGetProperty("medications", out var medsElement) && medsElement.ValueKind == JsonValueKind.Array)
-            {
-                return medsElement.GetRawText();
-            }
-            if (root.TryGetProperty("medicines", out var medsElement2) && medsElement2.ValueKind == JsonValueKind.Array)
-            {
-                return medsElement2.GetRawText();
-            }
-            if (root.TryGetProperty("medication", out var medsElement3) && medsElement3.ValueKind == JsonValueKind.Array)
-            {
-                return medsElement3.GetRawText();
-            }
-            if (root.ValueKind == JsonValueKind.Array)
-            {
-                return root.GetRawText();
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Failed to extract medications from AI result.");
-        }
-
-        return null;
-    }
 }
