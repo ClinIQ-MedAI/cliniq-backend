@@ -33,7 +33,7 @@ public class DoctorSurveyController(
         var result = await _registrationService.SubmitSurveyAsync(userId, request, cancellationToken);
 
         return result.IsSucceed ?
-            Ok(new { Message = _localizer["SurveyCreated"].Value }) :
+            Ok(result.Value) :
             result.ToProblem();
     }
 }
